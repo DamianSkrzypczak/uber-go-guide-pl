@@ -50,110 +50,98 @@ row before the </tbody></table> line.
 
 # Uber Go Style Guide
 
-## Table of Contents
+## Spis treści
 
-- [Introduction](#introduction)
-- [Guidelines](#guidelines)
-  - [Pointers to Interfaces](#pointers-to-interfaces)
-  - [Receivers and Interfaces](#receivers-and-interfaces)
-  - [Zero-value Mutexes are Valid](#zero-value-mutexes-are-valid)
-  - [Copy Slices and Maps at Boundaries](#copy-slices-and-maps-at-boundaries)
-  - [Defer to Clean Up](#defer-to-clean-up)
-  - [Channel Size is One or None](#channel-size-is-one-or-none)
-  - [Start Enums at One](#start-enums-at-one)
-  - [Error Types](#error-types)
-  - [Error Wrapping](#error-wrapping)
-  - [Handle Type Assertion Failures](#handle-type-assertion-failures)
-  - [Don't Panic](#dont-panic)
-  - [Use go.uber.org/atomic](#use-gouberorgatomic)
-  - [Avoid Mutable Globals](#avoid-mutable-globals)
-- [Performance](#performance)
-  - [Prefer strconv over fmt](#prefer-strconv-over-fmt)
-  - [Avoid string-to-byte conversion](#avoid-string-to-byte-conversion)
-  - [Prefer Specifying Map Capacity Hints](#prefer-specifying-map-capacity-hints)
-- [Style](#style)
-  - [Be Consistent](#be-consistent)
-  - [Group Similar Declarations](#group-similar-declarations)
-  - [Import Group Ordering](#import-group-ordering)
-  - [Package Names](#package-names)
-  - [Function Names](#function-names)
-  - [Import Aliasing](#import-aliasing)
-  - [Function Grouping and Ordering](#function-grouping-and-ordering)
-  - [Reduce Nesting](#reduce-nesting)
-  - [Unnecessary Else](#unnecessary-else)
-  - [Top-level Variable Declarations](#top-level-variable-declarations)
-  - [Prefix Unexported Globals with _](#prefix-unexported-globals-with-_)
-  - [Embedding in Structs](#embedding-in-structs)
-  - [Use Field Names to Initialize Structs](#use-field-names-to-initialize-structs)
-  - [Local Variable Declarations](#local-variable-declarations)
-  - [nil is a valid slice](#nil-is-a-valid-slice)
-  - [Reduce Scope of Variables](#reduce-scope-of-variables)
-  - [Avoid Naked Parameters](#avoid-naked-parameters)
-  - [Use Raw String Literals to Avoid Escaping](#use-raw-string-literals-to-avoid-escaping)
-  - [Initializing Struct References](#initializing-struct-references)
-  - [Initializing Maps](#initializing-maps)
-  - [Format Strings outside Printf](#format-strings-outside-printf)
-  - [Naming Printf-style Functions](#naming-printf-style-functions)
-- [Patterns](#patterns)
-  - [Test Tables](#test-tables)
-  - [Functional Options](#functional-options)
+- [Wstęp](#wstęp)
+- [Wskazówki](#wskazówki)
+  - [Wskaźniki typów interfejsowych](#wskaźniki-typów-interfejsowych)
+  - [Odbiorniki (Receivers) i Interfejsy](#odbiorniki-(receivers)-i-interfejsy)
+  - [Poprawność wartości zerowych Mutexów](#poprawność-wartości-zerowych-mutexów)
+  - [Ograniczenia kopiowania wycinków i map](#ograniczenia-kopiowania-wycinków-i-map)
+  - [Stosuj "defer" by opóźnić operacje czyszczenia (clean-up)](#Stosuj-"defer"-by-opóźnić-operacje-czyszczenia-(clean-up))
+  - [Kanały (channels) powinny mieć rozmiar 1 lub być niebuforowane](#kanały-(channels)-powinny-mieć-rozmiar-1-lub-być-niebuforowane)
+  - [Wyliczanie rozpoczynaj od 1](#wyliczanie-rozpoczynaj-od-1)
+  - [Typy błędów](#typy-błędów)
+  - [Opakowywanie błędów (Error wrapping)](#opakowywanie-błędów-(error-wrapping))
+  - [Obsługa błędów asercji typów](#obsługa-błędów-asercji-typów)
+  - [Nie "panikuj"](#nie-"panikuj")
+  - [Używaj go.uber.org/atomic](#używaj-gouberorgatomic)
+  - [Unikaj mutowalnych zmiennych globalnych](#unikaj-mutowalnych-zmiennych-globalnych)
+- [Wydajność](#wydajność)
+  - [Preferuj strconv ponad fmt](#preferuj-strconv-ponad-fmt)
+  - [Unikaj konwersji string-to-byte](#unikaj-konwersji-string-to-byte)
+  - [Określaj wskazówki dotyczące pojemności map](#określaj-wskazówki-dotyczące-pojemności-map)
+- [Styl](#styl)
+  - [Spójność ponad wszystko](#spójność-ponad-wszystko)
+  - [Grupuj podobne deklaracje](#grupuj-podobne-deklaracje)
+  - [Kolejność importowania bibliotek](#kolejność-importowania-bibliotek)
+  - [Nazwy pakietów](#nazwy-pakietów)
+  - [Nazwy funkcji](#nazwy-funkcji)
+  - [Aliasy importowanych bibliotek](#aliasy-importowanych-bibliotek)
+  - [Grupowanie i porządkowanie funkcji](#grupowanie-i-porządkowanie-funkcji)
+  - [Redukuj zagnieżdzenia](#redukuj-zagnieżdzenia)
+  - [Niepotrzebne instrukcje "Else"](#niepotrzebne-instrukcje-"else")
+  - [Deklarowanie zmiennych najwyższego poziomu](#deklarowanie-zmiennych-najwyższego-poziomu)
+  - [Rozpoczynaj nieeksportowane zmienne globalne znakiem _](#rozpoczynaj-nieeksportowane-zmienne-globalne-znakiem-_)
+  - [Zagnieżdzanie w strukturach (embedding)](#zagnieżdzanie-w-strukturach-(embedding))
+  - [Jawnie podawaj nazwy pól podczas inicjalizacji struktur](#jawnie-podawaj-nazwy-pól-podczas-inicjalizacji-struktur)
+  - [Deklarowanie zmiennych lokalnych](#deklarowanie-zmiennych-lokalnych)
+  - ["nil" to poprawna wartość wycinka](#"nil"-to-poprawna-wartość-wycinka)
+  - [Redukuj zasięg (scope) zmiennych](#redukuj-zasięg-(scope)-zmiennych)
+  - [Unikaj przekazywania "surowych" wartości parametrów](#unikaj-przekazywania-"surowych"-wartości-parametrów)
+  - [Używaj literałów znakowych (string literals) w celu uniknięcia znaków ucieczki](#używaj-literałów-znakowych-(string-literals)-w-celu-uniknięcia-znaków-ucieczki)
+  - [Inicjalizowanie referencji do struktur](#inicjalizowanie-referencji-do-struktur)
+  - [Inicjalizowanie map](#inicjalizowanie-map)  
+  - [Formatuj łańcuchy znakowe poza funkcją "Printf"](#formatuj-łańcuchy-znakowe-poza-funkcją-"Printf")
+  - [Nazewnictwo funkcji "Printf-style"](#nazewnictwo-funkcji-"printf-style")
+- [Wzorce](#wzorce)
+  - [Tablice testowe](#tablice-testowe)
+  - [Opcje funkcjonalne](#opcje-funkcjonalne)
 
-## Introduction
+## Wstęp
 
-Styles are the conventions that govern our code. The term style is a bit of a
-misnomer, since these conventions cover far more than just source file
-formatting—gofmt handles that for us.
+Style to konwencje zarządzania naszym kodem.
+Termin "styl" jest tutaj nieco mylący, ponieważ opisane tu konwencje obejmują znacznie większy obszar niżeli tylko formatowanie plików źródłowych, które zresztą robi za nas `gofmt`.  
 
-The goal of this guide is to manage this complexity by describing in detail the
-Dos and Don'ts of writing Go code at Uber. These rules exist to keep the code
-base manageable while still allowing engineers to use Go language features
-productively.
+Celem niniejszego poradnika jest ustrukturyzowanie tych kowencji poprzez szczegółowe opisanie rekomendacji i przeciwwskazań (Dos and Don'ts) stosowanych przy pisaniu kodu w Go w firmie Uber. Zasady te istnieją w celu zachowania sprawnego zarządzania bazą kodu przy jednoczesnym umożliwieniu inżynierom produktywnego korzystania z cech oraz funkcjonalności języka Go.
 
-This guide was originally created by [Prashant Varanasi] and [Simon Newton] as
-a way to bring some colleagues up to speed with using Go. Over the years it has
-been amended based on feedback from others.
+Poradnik został pierwotnie napisany przez [Prashanta Varanasi] oraz [Simona Newtona] jako sposób na wprowadzenie współpracowników w język Go. Przez lata był on stale modyfikowany i dopracowywany bazując na otrzymywanych informacjach zwrotnych.
 
-  [Prashant Varanasi]: https://github.com/prashantv
-  [Simon Newton]: https://github.com/nomis52
+  [Prashanta Varanasi]: https://github.com/prashantv
+  [Simona Newtona]: https://github.com/nomis52
 
-This documents idiomatic conventions in Go code that we follow at Uber. A lot
-of these are general guidelines for Go, while others extend upon external
-resources:
+Dokumentacja ta zawiera idiomatyczne konwencje dla kodu Go, przestrzegane w firmie Uber. Wiele z nich to oficjalne wytyczne dla Go podczas, gdy inne pochodzą z zewnętrznych źródeł takich jak:
 
-1. [Effective Go](https://golang.org/doc/effective_go.html)
-2. [The Go common mistakes guide](https://github.com/golang/go/wiki/CodeReviewComments)
+1. [Efektywny Go (Effective Go)](https://golang.org/doc/effective_go.html)
+2. [Przewodnik po typowych błędach Go (The Go common mistakes guide)](https://github.com/golang/go/wiki/CodeReviewComments)
 
-All code should be error-free when run through `golint` and `go vet`. We
-recommend setting up your editor to:
+Cały zawarty kod powinien być wolny od błędów zgłaszanych przez polecenia `golint` oraz `go vet`. Zalecamy skonfigurowanie edytora tak by:
 
-- Run `goimports` on save
-- Run `golint` and `go vet` to check for errors
+- Uruchamiać `goimports` po każdym zapisie pliku
+- Uruchamiać `golint` oraz `go vet` w celu wykrycia potencjalnych błędów
 
-You can find information in editor support for Go tools here:
+Informacje na temat edytorów i ich wsparcia dla języka Go dostępne są pod linkiem:
 <https://github.com/golang/go/wiki/IDEsAndTextEditorPlugins>
 
-## Guidelines
+## Wskazówki
 
-### Pointers to Interfaces
+### Wskaźniki typów interfejsowych
 
-You almost never need a pointer to an interface. You should be passing
-interfaces as values—the underlying data can still be a pointer.
+Praktycznie nigdy nie ma potrzeby używania wskaźników do interfejsów.
+Powinieneś przekazywać interfejs poprzez wartość, ponieważ w dalszym ciągu możliwe jest aby przekazywany obiekt był wskaźnikiem na dane.  
 
-An interface is two fields:
+Interfejs składa się z dwóch pól:
 
-1. A pointer to some type-specific information. You can think of this as
-  "type."
-2. Data pointer. If the data stored is a pointer, it’s stored directly. If
-  the data stored is a value, then a pointer to the value is stored.
+1. Wskaźnik na pewne informacje specyficzne dla typu. Możesz myśleć o tym jako o "typie".
+2. Wskaźnik na dane. Jeśli wartością jest wskaźnik, jest on przechowywany bezpośrednio. W innym przypadku, gdy wartością są dane, przechowywany zostaje  wskaźnik na te dane.
 
-If you want interface methods to modify the underlying data, you must use a
-pointer.
+Jeśli więc chcesz, aby metody typu interfejsowego modyfikowały jego dane, musisz w nich używać wskaźnika.
 
-### Receivers and Interfaces
+### Odbiorniki (Receivers) i Interfejsy
 
-Methods with value receivers can be called on pointers as well as values.
+Metody przynależące do odbiornika mogą być wywoływane zarówno na jego wskaźnikach jak i wartościach.
 
-For example,
+Na przykład:
 
 ```go
 type S struct {
@@ -170,33 +158,26 @@ func (s *S) Write(str string) {
 
 sVals := map[int]S{1: {"A"}}
 
-// You can only call Read using a value
+// Możesz wywoływać "Read" jedynie poprzez wartość
 sVals[1].Read()
 
-// This will not compile:
+// Kompilacja tego kodu się nie powiedzie:
 //  sVals[1].Write("test")
 
 sPtrs := map[int]*S{1: {"A"}}
 
-// You can call both Read and Write using a pointer
+// Możesz wywoływać zarówno "Read" jak i "Write" jeśli użyjesz wskaźnika  
 sPtrs[1].Read()
 sPtrs[1].Write("test")
 ```
 
-Similarly, an interface can be satisfied by a pointer, even if the method has a
-value receiver.
+Podobnie, interfejs może zostać spełniony poprzez wskaźnik, nawet jeśli odbiornikiem zadeklarowanej metody jest wartość, nie wskaźnik.
 
 ```go
 type F interface {
   f()
 }
-
-type S1 struct{}
-
-func (s S1) f() {}
-
-type S2 struct{}
-
+Typy błędów
 func (s *S2) f() {}
 
 s1Val := S1{}
@@ -209,21 +190,20 @@ i = s1Val
 i = s1Ptr
 i = s2Ptr
 
-// The following doesn't compile, since s2Val is a value, and there is no value receiver for f.
+// Kompilacja poniższego kodu się nie powiedzie, ponieważ s2Val przechowyje wartość, a odbiornikiem dla f jest wskaźnik.
 //   i = s2Val
 ```
 
-Effective Go has a good write up on [Pointers vs. Values].
+Efektywny Go dobrze opisuje ten przypadek w rozdziale [Pointers vs. Values].
 
   [Pointers vs. Values]: https://golang.org/doc/effective_go.html#pointers_vs_values
 
-### Zero-value Mutexes are Valid
+### Poprawność wartości zerowych Mutexów
 
-The zero-value of `sync.Mutex` and `sync.RWMutex` is valid, so you almost
-never need a pointer to a mutex.
+Wartości zerowe dla typów `sync.Mutex` oraz `sync.RWMutex` są jak najbardziej poprawne, prawie nigdy nie ma potrzeby na używanie wskaźników na mutex.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -242,10 +222,9 @@ mu.Lock()
 </td></tr>
 </tbody></table>
 
-If you use a struct by pointer, then the mutex can be a non-pointer field.
+Jeśli używasz struktury przez wskaźnik, zawarty w niej mutex nie musi być wskaźnikiem.
 
-Unexported structs that use a mutex to protect fields of the struct may embed
-the mutex.
+Struktury nieeksportowane wykorzystujące mutex do ochrony pól, mogą go zawierać (osadzać - embed).
 
 <table>
 <tbody>
@@ -253,7 +232,7 @@ the mutex.
 
 ```go
 type smap struct {
-  sync.Mutex // only for unexported types
+  sync.Mutex // tylko dla nieeksportowanych typów
 
   data map[string]string
 }
@@ -299,24 +278,23 @@ func (m *SMap) Get(k string) string {
 
 </tr>
 <tr>
-<td>Embed for private types or types that need to implement the Mutex interface.</td>
-<td>For exported types, use a private field.</td>
+<td>Osadź w prywatnych typach lub typach, które muszą implementować interfejs Mutex.</td>
+<td>Dla eksportowanych typów, użyj pól prywatnych.</td>
 </tr>
 
-</tbody></table>
+</tbody>
+</table>
 
-### Copy Slices and Maps at Boundaries
+### Ograniczenia kopiowania wycinków i map
 
-Slices and maps contain pointers to the underlying data so be wary of scenarios
-when they need to be copied.
+Ze względu na to że wycinki i mapy zawierają wskaźniki na przechowywane dane, należy uważać na scenariusze kiedy trzeba je skopiować.
 
-#### Receiving Slices and Maps
+#### Odbieranie wycinków i map
 
-Keep in mind that users can modify a map or slice you received as an argument
-if you store a reference to it.
+Pamiętaj, że użytkownicy mogą modyfikować zawartość map lub wycinków które uzyskałeś jako argument, gdy przechowywujesz do nich referencje.
 
 <table>
-<thead><tr><th>Bad</th> <th>Good</th></tr></thead>
+<thead><tr><th>Źle</th> <th>Dobrze</th></tr></thead>
 <tbody>
 <tr>
 <td>
@@ -329,7 +307,7 @@ func (d *Driver) SetTrips(trips []Trip) {
 trips := ...
 d1.SetTrips(trips)
 
-// Did you mean to modify d1.trips?
+// Czy chciałeś zmodyfikować pole d1.trips?
 trips[0] = ...
 ```
 
@@ -345,7 +323,7 @@ func (d *Driver) SetTrips(trips []Trip) {
 trips := ...
 d1.SetTrips(trips)
 
-// We can now modify trips[0] without affecting d1.trips.
+// Możemy teraz modyfikować wartość trips[0] bez wpływania na d1.trips.
 trips[0] = ...
 ```
 
@@ -355,13 +333,12 @@ trips[0] = ...
 </tbody>
 </table>
 
-#### Returning Slices and Maps
+#### Zwracanie wycinków i map
 
-Similarly, be wary of user modifications to maps or slices exposing internal
-state.
+Podobnie do powyższego, bądź świadom potencjalnych modyfikacji map lub wycinków udostępniających stan wewnętrzny.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -371,7 +348,7 @@ type Stats struct {
   counters map[string]int
 }
 
-// Snapshot returns the current stats.
+// Snapshot zwraca aktualny status
 func (s *Stats) Snapshot() map[string]int {
   s.mu.Lock()
   defer s.mu.Unlock()
@@ -379,8 +356,8 @@ func (s *Stats) Snapshot() map[string]int {
   return s.counters
 }
 
-// snapshot is no longer protected by the mutex, so any
-// access to the snapshot is subject to data races.
+// snapshot nie jest już dłużej chroniony przez mutex,
+// więc dowolna próba dostępu może stać się częścią wyścigu (data race).
 snapshot := stats.Snapshot()
 ```
 
@@ -403,19 +380,19 @@ func (s *Stats) Snapshot() map[string]int {
   return result
 }
 
-// Snapshot is now a copy.
+// Snapshot to teraz kopia.
 snapshot := stats.Snapshot()
 ```
 
 </td></tr>
 </tbody></table>
 
-### Defer to Clean Up
+### Stosuj "defer" by opóźnić operacje czyszczenia (clean-up)
 
-Use defer to clean up resources such as files and locks.
+Użyj instrukcji "defer" do czyszczenia zasobów takich jak pliki czy blokady (locks).
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -432,7 +409,8 @@ p.Unlock()
 
 return newCount
 
-// easy to miss unlocks due to multiple returns
+// łatwo o pominięcie odblokowywania
+/// ze wzgledu na wiele wystąpień instrukcji "return"
 ```
 
 </td><td>
@@ -448,56 +426,50 @@ if p.count < 10 {
 p.count++
 return p.count
 
-// more readable
+// bardziej czytelny
 ```
 
 </td></tr>
 </tbody></table>
 
-Defer has an extremely small overhead and should be avoided only if you can
-prove that your function execution time is in the order of nanoseconds. The
-readability win of using defers is worth the miniscule cost of using them. This
-is especially true for larger methods that have more than simple memory
-accesses, where the other computations are more significant than the `defer`.
+Defer ma niezwykle mały narzut i należy go unikać jedynie wtedy, gdy można udowodnić, że czas wykonania funkcji jest rzędu nanosekund.
+Korzyści w czytelności kodu wynikające z instrukcji defer są warte minimalnego kosztu za jej wykorzystanie.
+Powyższe stwierdzenie jest szczególnie prawdziwe dla większych metod operujących nie tylko na pamięci, w przypadku których koszt innych operacji znacząco przewyższa koszt instrukcji `defer`.
 
-### Channel Size is One or None
+### Kanały (channels) powinny mieć rozmiar 1 lub być niebuforowane
 
-Channels should usually have a size of one or be unbuffered. By default,
-channels are unbuffered and have a size of zero. Any other size
-must be subject to a high level of scrutiny. Consider how the size is
-determined, what prevents the channel from filling up under load and blocking
-writers, and what happens when this occurs.
+Domyślnie kanały są niebuforowane a ich rozmiar wynosi 0. Każdy inny rozmiar powinien podlegać ścisłej kontroli.
+Zastanów się, co wpływa na rozmiar kanału, co zapobiegnie jego zapełnianiu się pod wpływem obciążenia oraz blokowaniu zapisu i co jeśli taki scenariusz się wydarzy.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
 ```go
-// Ought to be enough for anybody!
+// Naaaapewno dla wszystkich wystarczy!
 c := make(chan int, 64)
 ```
 
 </td><td>
 
 ```go
-// Size of one
-c := make(chan int, 1) // or
-// Unbuffered channel, size of zero
+// Rozmiar równy 1
+c := make(chan int, 1) // lub
+// Niebuforowany, o rozmiarze 0
 c := make(chan int)
 ```
 
 </td></tr>
 </tbody></table>
 
-### Start Enums at One
+### Wyliczanie rozpoczynaj od 1
 
-The standard way of introducing enumerations in Go is to declare a custom type
-and a `const` group with `iota`. Since variables have a 0 default value, you
-should usually start your enums on a non-zero value.
+Standardowym sposobem wprowadzenia wyliczeń (enums) w Go jest zadeklarowanie  własnego typu oraz zgrupowanie `const` z użyciem `iota`.
+Ponieważ wartością domyślną zmiennych jest 0, dobrą praktyką jest rozpoczynianie wyliczania od wartości niezerowej.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -530,8 +502,7 @@ const (
 </td></tr>
 </tbody></table>
 
-There are cases where using the zero value makes sense, for example when the
-zero value case is the desirable default behavior.
+Są oczywiście przypadki gdzie rozpoczynanie od zera ma sens, na przykład gdy wartość zerowa opisuje zachowanie domyślne.
 
 ```go
 type LogOutput int
@@ -545,52 +516,47 @@ const (
 // LogToStdout=0, LogToFile=1, LogToRemote=2
 ```
 
-<!-- TODO: section on String methods for enums -->
+### Typy błędów
 
-### Error Types
+Istnieje kilka sposób deklarowania błędów:
 
-There are various options for declaring errors:
+- [`errors.New`] dla błędów z prostymi, statycznymi ciągami znaków
+- [`fmt.Errorf`] dla błędów opartych o formatowalne łańcuchy znaków
+- Typy niestandardowe, które implementują metodę `Error()`
+- Błędy opakowane z użyciem [`"pkg/errors".Wrap`]
 
-- [`errors.New`] for errors with simple static strings
-- [`fmt.Errorf`] for formatted error strings
-- Custom types that implement an `Error()` method
-- Wrapped errors using [`"pkg/errors".Wrap`]
+Podczas zwracania błędów, zadaj sobie poniższe pytania w celu wybrania opcji, która najlepiej odpowiada twoim potrzebom:
 
-When returning errors, consider the following to determine the best choice:
-
-- Is this a simple error that needs no extra information? If so, [`errors.New`]
-  should suffice.
-- Do the clients need to detect and handle this error? If so, you should use a
-  custom type, and implement the `Error()` method.
-- Are you propagating an error returned by a downstream function? If so, check
-  the [section on error wrapping](#error-wrapping).
-- Otherwise, [`fmt.Errorf`] is okay.
+- Czy chce zwrócić prosty błąd bez żadnych dodatkowych informacji? Jeśli tak, [`errors.New`] powinno być wystarczające.
+- Czy klient (twojej funkcji) powinien móc rozpoznać oraz obsłużyć ten błąd? Jeśli tak, powinieneś zastosować własny typ i zaimplementować w nim metodę `Error()`
+- Czy jedynie propagujesz błąd zwracany przez inną funkcje? Jeśli tak, zobacz sekcję
+na temat [opakowywania błędów](#opakowywanie-błędów-(error-wrapping)).
+- W pozostałych przypadkach dobrym pomysłem jest użycie [`fmt.Errorf`].
 
   [`errors.New`]: https://golang.org/pkg/errors/#New
   [`fmt.Errorf`]: https://golang.org/pkg/fmt/#Errorf
   [`"pkg/errors".Wrap`]: https://godoc.org/github.com/pkg/errors#Wrap
 
-If the client needs to detect the error, and you have created a simple error
-using [`errors.New`], use a var for the error.
+Jeśli klient (twojej funkcji) potrzebuje możliwości wykrycia błędu, ale stworzyłeś błąd przy użyciu [`errors.New`], wyeksportuj błąd do oddzielnej zmiennej.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
 ```go
-// package foo
+// pakiet foo
 
 func Open() error {
   return errors.New("could not open")
 }
 
-// package bar
+// pakiet bar
 
 func use() {
   if err := foo.Open(); err != nil {
     if err.Error() == "could not open" {
-      // handle
+      // kod obsługi błędu
     } else {
       panic("unknown error")
     }
@@ -601,7 +567,7 @@ func use() {
 </td><td>
 
 ```go
-// package foo
+// pakiet foo
 
 var ErrCouldNotOpen = errors.New("could not open")
 
@@ -609,11 +575,11 @@ func Open() error {
   return ErrCouldNotOpen
 }
 
-// package bar
+// pakiet bar
 
 if err := foo.Open(); err != nil {
   if err == foo.ErrCouldNotOpen {
-    // handle
+    // kod obsługi błędu
   } else {
     panic("unknown error")
   }
@@ -623,12 +589,10 @@ if err := foo.Open(); err != nil {
 </td></tr>
 </tbody></table>
 
-If you have an error that clients may need to detect, and you would like to add
-more information to it (e.g., it is not a static string), then you should use a
-custom type.
+Jeśli chcesz by twój błąd był wykrywalny przez klienta i chciałbyś dodać do niego więcej szczegółów (nie tylko pojedynczy łańcuch znaków), powinieneś utworzyć własny typ błędu.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -640,7 +604,7 @@ func open(file string) error {
 func use() {
   if err := open(); err != nil {
     if strings.Contains(err.Error(), "not found") {
-      // handle
+      // kod obsługi błędu
     } else {
       panic("unknown error")
     }
@@ -666,7 +630,7 @@ func open(file string) error {
 func use() {
   if err := open(); err != nil {
     if _, ok := err.(errNotFound); ok {
-      // handle
+      // kod obsługi błędu
     } else {
       panic("unknown error")
     }
@@ -677,12 +641,10 @@ func use() {
 </td></tr>
 </tbody></table>
 
-Be careful with exporting custom error types directly since they become part of
-the public API of the package. It is preferable to expose matcher functions to
-check the error instead.
+Uważaj z bezpośrednim eksportowaniem własnych typów błędów ponieważ stają sie one częścią publicznego API twojego pakietu. Zdecydowanie bardziej zalecane jest wystawienie funkcji które pozwolą na wykrywanie tego typu błędów (matcher functions).
 
 ```go
-// package foo
+// pakiet foo
 
 type errNotFound struct {
   file string
@@ -701,41 +663,31 @@ func Open(file string) error {
   return errNotFound{file: file}
 }
 
-// package bar
+// pakiet bar
 
 if err := foo.Open("foo"); err != nil {
   if foo.IsNotFoundError(err) {
-    // handle
+    // kod obsługi błędu
   } else {
     panic("unknown error")
   }
 }
 ```
 
-<!-- TODO: Exposing the information to callers with accessor functions. -->
+### Opakowywanie błędów (Error wrapping)
 
-### Error Wrapping
+Istnieją trzy główne sposoby propagacji błędów w przypadku błędu wywołania funkcji:
 
-There are three main options for propagating errors if a call fails:
+- Zwróć oryginalny błąd jeżeli nie ma potrzeby na dodawanie żadnych dodatkowych informacji o kontekście lub gdy zależy ci na zachowaniu oryginalnego typu błędu.
+- Dodawaj kontekst przy użyciu [`"pkg/errors".Wrap`] dzięki czemu komunikat błędu będzie zawierać więcej przydatnych informacji oraz [`"pkg/errors".Cause`] aby wyekstrahować oryginalną część zapakowanego błędu.
+- Używaj [`fmt.Errorf`] w przypadkach, w których wiesz że dla kodu wywołującego (caller) twój kod nie zaistnieje potrzeba wykrywania oraz obsługi tego konkretnego przypadku (w przypadkach gdy wystarczy informacja że coś poszło nie tak).
 
-- Return the original error if there is no additional context to add and you
-  want to maintain the original error type.
-- Add context using [`"pkg/errors".Wrap`] so that the error message provides
-  more context and [`"pkg/errors".Cause`] can be used to extract the original
-  error.
-- Use [`fmt.Errorf`] if the callers do not need to detect or handle that
-  specific error case.
+Zalecane jest by dodawać kontekst tam gdzie to tylko możliwe aby zamiast niejasnych komunikatów błędów takich jak "connection refused", móc dostać przydatne informacje o kontekście wywołania takie jak w przypadku "call service foo: connection refused".
 
-It is recommended to add context where possible so that instead of a vague
-error such as "connection refused", you get more useful errors such as
-"call service foo: connection refused".
-
-When adding context to returned errors, keep the context succinct by avoiding
-phrases like "failed to", which state the obvious and pile up as the error
-percolates up through the stack:
+Dodając kontekst do zwracanych błędów, utrzymuj zwięzły zestaw informacji o kontekście poprzez unikanie zwrotów takich jak "failed to", które opisują rzeczy oczywiste i jedynie gromadzą się na kolejnych poziomach propagacji błędu zwiększając tym samym obiętość wynikowego komunikatu.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -759,36 +711,34 @@ if err != nil {
 
 <tr><td>
 
-```
+```go
 failed to x: failed to y: failed to create new store: the error
 ```
 
 </td><td>
 
-```
+```go
 x: y: new store: the error
 ```
 
 </td></tr>
 </tbody></table>
 
-However once the error is sent to another system, it should be clear the
-message is an error (e.g. an `err` tag or "Failed" prefix in logs).
+Jednakże, w przypadkach gdy błąd ma trafić do innego systemu, informacja o tym że komunikat dotyczy błędu powinna byc zawarta w wiadomości (np. poprzez tag `err` lub prefix "Failed" w logach).
 
-See also [Don't just check errors, handle them gracefully].
+Zobacz również [Don't just check errors, handle them gracefully].
 
   [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
   [Don't just check errors, handle them gracefully]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 
-### Handle Type Assertion Failures
+### Obsługa błędów asercji typów
 
-The single return value form of a [type assertion] will panic on an incorrect
-type. Therefore, always use the "comma ok" idiom.
+Forma oparta na pojedynczej wartości zwracanej z [asercji typu] wywoła panikę przy podaniu nieprawidłowego typu. Dlatego staraj się wykorzystywać formę zawierającą 2 wartości zwracane z użyciem idiomu "comma ok".
 
-  [type assertion]: https://golang.org/ref/spec#Type_assertions
+  [asercji typu]: https://golang.org/ref/spec#Type_assertions
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -801,26 +751,21 @@ t := i.(string)
 ```go
 t, ok := i.(string)
 if !ok {
-  // handle the error gracefully
+  // kod obsługi błędu.
 }
 ```
 
 </td></tr>
 </tbody></table>
 
-<!-- TODO: There are a few situations where the single assignment form is
-fine. -->
+### Nie "panikuj"
 
-### Don't Panic
-
-Code running in production must avoid panics. Panics are a major source of
-[cascading failures]. If an error occurs, the function must return an error and
-allow the caller to decide how to handle it.
+Kod działający produkcyjnie musi unikać paniki. Instrukcje "panic" są głównym źródłem tzw. [cascading failures] "awarii kaskadowych". Jeśli błąd wystąpi, funkcja powinna go zwróćić i tym samym umożliwić wywołującemu zdecydowanie o ścieżce jego dalszej obsługi.  
 
   [cascading failures]: https://en.wikipedia.org/wiki/Cascading_failure
 
-<table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+  <table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -866,20 +811,16 @@ func main() {
 </td></tr>
 </tbody></table>
 
-Panic/recover is not an error handling strategy. A program must panic only when
-something irrecoverable happens such as a nil dereference. An exception to this is
-program initialization: bad things at program startup that should abort the
-program may cause panic.
+Panic/recover to nie strategią obsługi błędów. Program panikuje dopiero wtedy gdy błąd wynika z sytuacji nie do naprawienia takiej jak np. dereferencja wartości nil. Wyjatek od reguły stanowi tutaj etap inicjalizacji programu: błędy w procesie uruchamiania programu, które powinny przerwać program, powinny wywołać panikę.
 
 ```go
 var _statusTemplate = template.Must(template.New("name").Parse("_statusHTML"))
 ```
 
-Even in tests, prefer `t.Fatal` or `t.FailNow` over panics to ensure that the
-test is marked as failed.
+Nawet w testach, preferuj `t.Fatal` lub `t.FailNow` zamiast "panic" by upewnić się że test zostanie oznaczony jako nieudany.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -906,40 +847,35 @@ if err != nil {
 </td></tr>
 </tbody></table>
 
-<!-- TODO: Explain how to use _test packages. -->
+### Używaj go.uber.org/atomic
 
-### Use go.uber.org/atomic
+Operacje atomowe przeprowadzane z użyciem pakietu [sync/atomic] operują na surowych typach danych (`int32`, `int64`, itp.) a więc łatwo jest zapomnieć o użyciu operacji atomowej do odczytu lub modyfikacji zmiennych.
 
-Atomic operations with the [sync/atomic] package operate on the raw types
-(`int32`, `int64`, etc.) so it is easy to forget to use the atomic operation to
-read or modify the variables.
-
-[go.uber.org/atomic] adds type safety to these operations by hiding the
-underlying type. Additionally, it includes a convenient `atomic.Bool` type.
+[go.uber.org/atomic] zwiększa bezpieczeństwo tych operacji, ukrywając typ podstawowy. Dodatkowo zawiera wygodny typ `atom.Bool`.
 
   [go.uber.org/atomic]: https://godoc.org/go.uber.org/atomic
   [sync/atomic]: https://golang.org/pkg/sync/atomic/
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
 ```go
 type foo struct {
-  running int32  // atomic
+  running int32  // typ atomowy
 }
 
 func (f* foo) start() {
   if atomic.SwapInt32(&f.running, 1) == 1 {
-     // already running…
+     // juz działa...
      return
   }
-  // start the Foo
+  // rozpocznij foo
 }
 
 func (f *foo) isRunning() bool {
-  return f.running == 1  // race!
+  return f.running == 1  // wyścig!
 }
 ```
 
@@ -952,10 +888,10 @@ type foo struct {
 
 func (f *foo) start() {
   if f.running.Swap(true) {
-     // already running…
+     // już działa…
      return
   }
-  // start the Foo
+  // rozpocznij foo
 }
 
 func (f *foo) isRunning() bool {
@@ -966,13 +902,12 @@ func (f *foo) isRunning() bool {
 </td></tr>
 </tbody></table>
 
-### Avoid Mutable Globals
+### Unikaj mutowalnych zmiennych globalnych
 
-Avoid mutating global variables, instead opting for dependency injection.
-This applies to function pointers as well as other kinds of values.
+Unikaj mutowania zmiennych globalnych, zamiast tego stosuj wstrzykiwanie zależności (dependency injection). Dotyczy to zarówno wskaźników funkcji jak i innych rodzajów wartości.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1042,17 +977,16 @@ func TestSigner(t *testing.T) {
 </td></tr>
 </tbody></table>
 
-## Performance
+## Wydajność
 
-Performance-specific guidelines apply only to the hot path.
+Wytyczne dotyczące wydajności odnoszą się tylko to tzw. "hot paths" - ścieżek wykonywania kodu, w których spędzana jest większość czasu wykonywania i które mogą być wykonywane bardzo często.
 
-### Prefer strconv over fmt
+### Preferuj strconv ponad fmt
 
-When converting primitives to/from strings, `strconv` is faster than
-`fmt`.
+Podczas konwersji typów prymitywnych z/do typu string, `strconv` jest szybsze od `fmt`.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1086,13 +1020,12 @@ BenchmarkStrconv-4    64.2 ns/op    1 allocs/op
 </td></tr>
 </tbody></table>
 
-### Avoid string-to-byte conversion
+### Unikaj konwersji string-to-byte
 
-Do not create byte slices from a fixed string repeatedly. Instead, perform the
-conversion once and capture the result.
+Nie powtarzaj konwersji łańcuchów znakowych na wycinki bajtowe. Zamiast tego, przeprowadź operacje konwersji raz i zachowaj wynik.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1127,23 +1060,21 @@ BenchmarkGood-4  500000000   3.25 ns/op
 </td></tr>
 </tbody></table>
 
-### Prefer Specifying Map Capacity Hints
+### Określaj wskazówki dotyczące pojemności map
 
-Where possible, provide capacity hints when initializing
-maps with `make()`.
+Gdy to możliwe, umieszczaj wskazówki (hints) dotyczące pojemności mapy inicjalizowanej za pomocą funkcji `make()`.
 
 ```go
 make(map[T1]T2, hint)
 ```
 
-Providing a capacity hint to `make()` tries to right-size the
-map at initialization time, which reduces the need for growing
-the map and allocations as elements are added to the map. Note
-that the capacity hint is not guaranteed for maps, so adding
-elements may still allocate even if a capacity hint is provided.
+Zapewnienie informacji o pojemności funkcji `make()` sprawia że ta próbuje
+dopasować rozmiar mapy w czasie jej inicjalizacji, co skutkuje redukcją czasu
+potrzebnego na zwiększenie mapy i alokacje pamięci podczas dodawania nowych elementów.
+Pamiętaj jednak że mapy nie gwarantują obsługi wskazanej pojemności więc więc dodawanie kolejnych elementów może nadal wymagać alokacji pamięci nawet w przypadku podania wskazówki.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1171,45 +1102,40 @@ for _, f := range files {
 </td></tr>
 <tr><td>
 
-`m` is created without a size hint; there may be more
-allocations at assignment time.
+mapa `m` stworzona bez wskazania pojemności; Może wystąpić więcej alokacji podczas operacji przypisania.
 
 </td><td>
 
-`m` is created with a size hint; there may be fewer
-allocations at assignment time.
+mapa `m` stworzona ze wskazaniem pojemności; Może wystąpić mniej alokacji podczas operacji przypisywania.
 
 </td></tr>
 </tbody></table>
 
-## Style
+## Styl
 
-### Be Consistent
+### Spójność ponad wszystko
 
-Some of the guidelines outlined in this document can be evaluated objectively;
-others are situational, contextual, or subjective.
+Niektóre wytyczne przedstawione w tym dokumencie można ocenić obiektywnie;
+inne zaś są sytuacyjne, kontekstowe lub subiektywne.
 
-Above all else, **be consistent**.
+Ponad wszystko inne, **zachowaj spójność**.
 
-Consistent code is easier to maintain, is easier to rationalize, requires less
-cognitive overhead, and is easier to migrate or update as new conventions emerge
-or classes of bugs are fixed.
+Spójny kod łatwiej się utrzymuje oraz racjonalizuje.
+Stawia on mniejszą barierę poznawczą oraz pozwala na prostrze migrowanie czy aktualizowanie wraz z pojawianiem się nowych konwencji lub w celu przeprowadzenia operacji naprawczych.
 
-Conversely, having multiple disparate or conflicting styles within a single
-codebase causes maintenance overhead, uncertainty, and cognitive dissonance,
-all of which can directly contribute to lower velocity, painful code reviews,
-and bugs.
+Z drugiej strony, baza kodu zawierająca wiele różnych, potencjalnie sprzecznych styli
+powoduje dysonans poznawczy, zwiększa narzut związany z utrzymaniem oraz przyczynia się do wzrostu ogólnej niepewności w projekcie. Wszystko to może bezpośrednio przyczynić się do zmniejszenia prędkości pracy zespołu (velocity), bolesnego procesu review kodu oraz powstawania błędów.
 
-When applying these guidelines to a codebase, it is recommended that changes
-are made at a package (or larger) level: application at a sub-package level
-violates the above concern by introducing multiple styles into the same code.
+Podczas stosowania tych wytycznych w swojej bazie kodu zaleca się wprowadzanie zmian
+na poziomie całego pakietu (lub większym): stosowanie ich na poziomie pojedynczego "sup-package"
+narusza wyżej wymienione obawy poprzez wprowadzenie wielu różnych styli w tą samą bazę kodu.
 
-### Group Similar Declarations
+### Grupuj podobne deklaracje
 
-Go supports grouping similar declarations.
+Go wspiera grupowanie podobnych deklaracji.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1230,10 +1156,10 @@ import (
 </td></tr>
 </tbody></table>
 
-This also applies to constants, variables, and type declarations.
+Reguła ta ma również zastosowanie dla stałych, zmiennych i deklaracji typów.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1275,10 +1201,10 @@ type (
 </td></tr>
 </tbody></table>
 
-Only group related declarations. Do not group declarations that are unrelated.
+Grupuj jedynie związane ze sobą deklaracje. Nie grupuj deklaracji które nie mają nic wspólnego.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1310,11 +1236,10 @@ const ENV_VAR = "MY_ENV"
 </td></tr>
 </tbody></table>
 
-Groups are not limited in where they can be used. For example, you can use them
-inside of functions.
+Grupy nie posiadają ograniczeń pod kątem miejsca użycia. Możesz użyć ich naprzykład wewnątrz ciała funkcji.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1345,17 +1270,17 @@ func f() string {
 </td></tr>
 </tbody></table>
 
-### Import Group Ordering
+### Kolejność importowania bibliotek
 
-There should be two import groups:
+Instrukcje importowania powinny być podzielone na dwie grupy:
 
-- Standard library
-- Everything else
+- Biblioteka standardowa
+- Cała reszta
 
-This is the grouping applied by goimports by default.
+Jest to domyślne grupowanie stosowane przez goimports.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1383,35 +1308,32 @@ import (
 </td></tr>
 </tbody></table>
 
-### Package Names
+### Nazwy pakietów
 
-When naming packages, choose a name that is:
+Podczas nazywania pakietów, wybiera nazwy które:
 
-- All lower-case. No capitals or underscores.
-- Does not need to be renamed using named imports at most call sites.
-- Short and succinct. Remember that the name is identified in full at every call
-  site.
-- Not plural. For example, `net/url`, not `net/urls`.
-- Not "common", "util", "shared", or "lib". These are bad, uninformative names.
+- Posiadają jedynie małe litery. Bez wielkich liter czy podkreśleń (_).
+- Nie wymagają zmiany nazwy poprzez "named imports" w większości miejsc wykorzystania.
+- Są krótkie i zwięzłe. Pamiętaj że każde miejsce wywołania będzie musiało korzystać z pełnej nazwy pakietu.
+- Nie zwierają liczby mnogiej. Na przykład `net/url` zamiast `net/urls`.
+- Nie należą do nazw jak "common", "util", "shared" czy "lib". Są to złe, nieinformacyjne nazwy.
 
-See also [Package Names] and [Style guideline for Go packages].
+Zobacz również [Package Names] oraz [Style guideline for Go packages].
 
   [Package Names]: https://blog.golang.org/package-names
   [Style guideline for Go packages]: https://rakyll.org/style-packages/
 
-### Function Names
+### Nazwy funkcji
 
-We follow the Go community's convention of using [MixedCaps for function
-names]. An exception is made for test functions, which may contain underscores
-for the purpose of grouping related test cases, e.g.,
-`TestMyFunction_WhatIsBeingTested`.
+Przestrzegamy konwencji społeczności Go używającej [MixedCaps for function
+names]. Wyjątkiem są funkcje testowe, które mogą zawierać podkreślenia w celu grupowania powiązanych przypadków testowych np. `TestMyFunction_WhatIsBeingTested`.
 
   [MixedCaps for function names]: https://golang.org/doc/effective_go.html#mixed-caps
 
-### Import Aliasing
+### Aliasy importowanych bibliotek
 
-Import aliasing must be used if the package name does not match the last
-element of the import path.
+Aliasy dla importowanych bibliotek muszą być stosowane w przypadku gdy
+nazwa pakietu nie pasuje do ostatniego elemetu ścieżki importu.
 
 ```go
 import (
@@ -1422,11 +1344,11 @@ import (
 )
 ```
 
-In all other scenarios, import aliases should be avoided unless there is a
-direct conflict between imports.
+We wszystkich innych przypadkach, import aliasing powinien być unikany chyba że
+występuje konflikt w nazwach importowanych pakietów.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1455,22 +1377,20 @@ import (
 </td></tr>
 </tbody></table>
 
-### Function Grouping and Ordering
+### Grupowanie i porządkowanie funkcji
 
-- Functions should be sorted in rough call order.
-- Functions in a file should be grouped by receiver.
+- Funkcje powinny być sortowane w przybliżonej kolejności wykonywania.
+- Funkcje wewnątrz tego samego pliku powinny być grupowane zgodnie z ich odbiorcą (receiver).
 
-Therefore, exported functions should appear first in a file, after
-`struct`, `const`, `var` definitions.
+Dlatego najpierw w pliku powinny pojawić się funkcje eksportowane, a następnie
+definicje takie jak `struct`,`const`, `var`.
 
-A `newXYZ()`/`NewXYZ()` may appear after the type is defined, but before the
-rest of the methods on the receiver.
+Funkcje `newXYZ()`/`NewXYZ()` mogą pojawić się po definicji typu `XYZ`, jednak powinny znajdować się przed resztą metod których odbiorcą jest ten typ.
 
-Since functions are grouped by receiver, plain utility functions should appear
-towards the end of the file.
+Ponieważ funkcje są pogrupowane według odbiorcy, funkcje narzędziowe ogólnego przeznaczenia powinny znajdować się na końcu pliku.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1511,14 +1431,12 @@ func calcCost(n []int) int {...}
 </td></tr>
 </tbody></table>
 
-### Reduce Nesting
+### Redukuj zagnieżdzenia
 
-Code should reduce nesting where possible by handling error cases/special
-conditions first and returning early or continuing the loop. Reduce the amount
-of code that is nested multiple levels.
+Kod powinien redukować zagnieżdzenia gdzie to tylko możliwe poprzez obsługę błędów oraz przypadków specialnych najpierw oraz wczesne zwrócenie lub kontynuacje pętli. Redukuj ilość kodu o wielu poziomach zagnieżdzenia.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1557,13 +1475,13 @@ for _, v := range data {
 </td></tr>
 </tbody></table>
 
-### Unnecessary Else
+### Niepotrzebne instrukcje "Else"
 
-If a variable is set in both branches of an if, it can be replaced with a
-single if.
+Jeśli zmienna jest ustawiona dla obu ścieżek instrukcji if, instrukcja ta
+może zostać zastąpiona pojedyńczą ścieżką instrukcji if.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1588,13 +1506,13 @@ if b {
 </td></tr>
 </tbody></table>
 
-### Top-level Variable Declarations
+### Deklarowanie zmiennych najwyższego poziomu
 
-At the top level, use the standard `var` keyword. Do not specify the type,
-unless it is not the same type as the expression.
+Na najwyższym poziomie (poziomie pliku), używaj standardowego słowa kluczowego `var`.
+Nie określaj typu, chyba że jest on inny niżeli typ przypisywanego wyrażenia.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1608,8 +1526,8 @@ func F() string { return "A" }
 
 ```go
 var _s = F()
-// Since F already states that it returns a string, we don't need to specify
-// the type again.
+// Ponieważ F już informuje, że ​​zwraca łancuch znaków,
+// nie musimy ponownie określać typu.
 
 func F() string { return "A" }
 ```
@@ -1617,8 +1535,7 @@ func F() string { return "A" }
 </td></tr>
 </tbody></table>
 
-Specify the type if the type of the expression does not match the desired type
-exactly.
+Określ typ, jeśli typ wyrażenia nie odzwierciedla w pełni porządanego typu.
 
 ```go
 type myError struct{}
@@ -1628,22 +1545,19 @@ func (myError) Error() string { return "error" }
 func F() myError { return myError{} }
 
 var _e error = F()
-// F returns an object of type myError but we want error.
+// F zwraca obiekt o typie myError jednak zależy nam na typie error.
 ```
 
-### Prefix Unexported Globals with _
+### Rozpoczynaj nieeksportowane zmienne globalne znakiem _
 
-Prefix unexported top-level `var`s and `const`s with `_` to make it clear when
-they are used that they are global symbols.
+Stosuj prefix `_` dla nieeksportowanych `var` (zmiennych) oraz `const` (stałych) najwyższego poziomu żeby w przypadku użycia jasno poinformować że są symbolami globalnymi.
 
-Exception: Unexported error values, which should be prefixed with `err`.
+Wyjątek: Nieeksportowane wartości błędów, które powinny posiadać prefix `err`.
 
-Rationale: Top-level variables and constants have a package scope. Using a
-generic name makes it easy to accidentally use the wrong value in a different
-file.
+Uzasadnienie wyjątku: Zmienne i stałe najwyższego poziomu mają zakres pakietu. Używanie generycznych nazw może ułatwić popełnianie błędów polegających na przypadkowym użyciu niewłaściwej wartości w innym pliku tego samego pakietu.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1662,8 +1576,8 @@ func Bar() {
   ...
   fmt.Println("Default port", defaultPort)
 
-  // We will not see a compile error if the first line of
-  // Bar() is deleted.
+  // Nie zobaczymy błędu kompilacji po usunięciu pierwszej lini w funkcji Bar.
+  // Zamiast tego zostanie użyta globalna stała o tej samej nazwie.
 }
 ```
 
@@ -1681,14 +1595,13 @@ const (
 </td></tr>
 </tbody></table>
 
-### Embedding in Structs
+### Zagnieżdzanie w strukturach (embedding)
 
-Embedded types (such as mutexes) should be at the top of the field list of a
-struct, and there must be an empty line separating embedded fields from regular
-fields.
+Typy zagnieżdzone (takich jak mutexy) powinny występować na samej górze
+listy pól struktury w której są zagnieżdzane. Powinny być również oddzielone pojedynczą pustą linią od zwykłych pól.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1712,15 +1625,15 @@ type Client struct {
 </td></tr>
 </tbody></table>
 
-### Use Field Names to Initialize Structs
+### Jawnie podawaj nazwy pól podczas inicjalizacji struktur
 
-You should almost always specify field names when initializing structs. This is
-now enforced by [`go vet`].
+Prawie zawsze powinieneś jawnie podawać nazwy pól podczas inicjalizowania struktur.
+To jest teraz wymuszane przez polecenie [`go vet`].
 
   [`go vet`]: https://golang.org/cmd/vet/
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1741,8 +1654,7 @@ k := User{
 </td></tr>
 </tbody></table>
 
-Exception: Field names *may* be omitted in test tables when there are 3 or
-fewer fields.
+Wyjątek: Nazwy pól **mogą w ostateczności** być pomijane w przypadku tablic testowych składających się z 3 lub mniejszej ilości pól.
 
 ```go
 tests := []struct{
@@ -1754,13 +1666,12 @@ tests := []struct{
 }
 ```
 
-### Local Variable Declarations
+### Deklarowanie zmiennych lokalnych
 
-Short variable declarations (`:=`) should be used if a variable is being set to
-some value explicitly.
+Skrócone deklaracje zmiennych (`:=`) powinny być używane gdy operacja przyporządkowywania wartości do zmiennej jest jawna.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1777,13 +1688,12 @@ s := "foo"
 </td></tr>
 </tbody></table>
 
-However, there are cases where the default value is clearer when the `var`
-keyword is used. [Declaring Empty Slices], for example.
+Jednakże, są przypadki w których domyślna wartość zmiennej staje się bardziej oczywista gdy zastosuje się słowo kluczowe `var`. Jak w przypadku [deklarowania pustych wycinków].
 
-  [Declaring Empty Slices]: https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
+  [deklarowania pustych wycinków]: https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1814,15 +1724,14 @@ func f(list []int) {
 </td></tr>
 </tbody></table>
 
-### nil is a valid slice
+### "nil" to poprawna wartość wycinka
 
-`nil` is a valid slice of length 0. This means that,
+`nil` to poprawna wartość wycinka o zerowej długości. Oznacza to że:
 
-- You should not return a slice of length zero explicitly. Return `nil`
-  instead.
+- Nie powinieneś zwracać wycinków o zerowej długości jawnie. Zamiast tego zwróć `nil`.
 
   <table>
-  <thead><tr><th>Bad</th><th>Good</th></tr></thead>
+  <thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
   <tbody>
   <tr><td>
 
@@ -1843,11 +1752,10 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
-- To check if a slice is empty, always use `len(s) == 0`. Do not check for
-  `nil`.
+- Aby sprawdzić czy wycinek jest pusty, zawsze stosuj wyrażenie `len(s) == 0`. Nie porównuj go z wartością `nil`.
 
   <table>
-  <thead><tr><th>Bad</th><th>Good</th></tr></thead>
+  <thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
   <tbody>
   <tr><td>
 
@@ -1868,17 +1776,16 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
-- The zero value (a slice declared with `var`) is usable immediately without
-  `make()`.
+- Wartość zerowa (wycinek zadeklarowany przy użyciu `var`) nadaje się do użytku od razu, bez konieczności stosowania funkcji `make()`.
 
   <table>
-  <thead><tr><th>Bad</th><th>Good</th></tr></thead>
+  <thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
   <tbody>
   <tr><td>
 
   ```go
   nums := []int{}
-  // or, nums := make([]int)
+  // lub, nums := make([]int)
 
   if add1 {
     nums = append(nums, 1)
@@ -1906,13 +1813,13 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
-### Reduce Scope of Variables
+### Redukuj zasięg (scope) zmiennych
 
-Where possible, reduce scope of variables. Do not reduce the scope if it
-conflicts with [Reduce Nesting](#reduce-nesting).
+Jeśli to tylko możliwe, staraj się redukować zakres (scope) zmiennych.
+Nie redukuj zakresu jeśli stoi to w sprzeczności z zasadami opisanymi w [Redukuj zganieżdzenia](#redukuj-zagnieżdzenia)
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1934,11 +1841,10 @@ if err := ioutil.WriteFile(name, data, 0644); err != nil {
 </td></tr>
 </tbody></table>
 
-If you need a result of a function call outside of the if, then you should not
-try to reduce the scope.
+Jeżeli potrzebujesz wyniku wywołania funkcji poza instrukcją if, nie powinieneś starać się redukować zasięgu.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -1975,13 +1881,13 @@ return nil
 </td></tr>
 </tbody></table>
 
-### Avoid Naked Parameters
+### Unikaj przekazywania "surowych" wartości parametrów
 
-Naked parameters in function calls can hurt readability. Add C-style comments
-(`/* ... */`) for parameter names when their meaning is not obvious.
+Surowe wartości parametrów przekazywane podczas wywoływania funkcji mogą zaszkodzić czytelności.
+Dodawaj komentarze w stylu języka C (`/* ... */`) z nazwami parametrów jeśli ich znaczenie nie jest oczywiste.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -2002,9 +1908,7 @@ printInfo("foo", true /* isLocal */, true /* done */)
 </td></tr>
 </tbody></table>
 
-Better yet, replace naked `bool` types with custom types for more readable and
-type-safe code. This allows more than just two states (true/false) for that
-parameter in the future.
+Jeszcze lepiej będzie gdy zastąpisz "surową" wartość boolowską własnym typem w celu poprawienia czytelności oraz kodu bezpiecznego pod kątem typowania. Zachowanie takie zezwala na potencjalne przekazywanie przez ten parametr więcej niż dwóch stanów jeśli w przyszłości zajdzie taka potrzeba.
 
 ```go
 type Region int
@@ -2019,20 +1923,19 @@ type Status int
 const (
   StatusReady = iota + 1
   StatusDone
-  // Maybe we will have a StatusInProgress in the future.
+  // Może w przyszłości dodamy kolejny możliwy status - StatusInProgress.
 )
 
 func printInfo(name string, region Region, status Status)
 ```
 
-### Use Raw String Literals to Avoid Escaping
+### Używaj literałów znakowych (string literals) w celu uniknięcia znaków ucieczki
 
-Go supports [raw string literals](https://golang.org/ref/spec#raw_string_lit),
-which can span multiple lines and include quotes. Use these to avoid
-hand-escaped strings which are much harder to read.
+Go wspiera [surowe literały znakowe (raw string literals)](https://golang.org/ref/spec#raw_string_lit), które mogą obejmować wiele wierszy i zawierać znaki cudzysłowu.
+Używaj ich by uniknąć ręcznego dodawania znaków ucieczki (escapingu), co zdecydowanie zmniejsza czytelność.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -2049,20 +1952,19 @@ wantError := `unknown error:"test"`
 </td></tr>
 </tbody></table>
 
-### Initializing Struct References
+### Inicjalizowanie referencji do struktur
 
-Use `&T{}` instead of `new(T)` when initializing struct references so that it
-is consistent with the struct initialization.
+Używaj `&T{}` zamiast `new(T)` kiedy inicjalizujesz referencje do struktury tak aby było to zgodne z inicjalizacją samych struktur.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
 ```go
 sval := T{Name: "foo"}
 
-// inconsistent
+// niespójne
 sptr := new(T)
 sptr.Name = "bar"
 ```
@@ -2078,22 +1980,20 @@ sptr := &T{Name: "bar"}
 </td></tr>
 </tbody></table>
 
-### Initializing Maps
+### Inicjalizowanie map
 
-Prefer `make(..)` for empty maps, and maps populated
-programmatically. This makes map initialization visually
-distinct from declaration, and it makes it easy to add size
-hints later if available.
+Preferuj `make(..)` dla pustych map oraz map zapełnianych w czasie działania programu.
+To sprawia, że inicjalizacja mapy różni się wizualnie od jej deklaracji i ułatwia późniejsze dodawanie wskazówek dotyczących jej rozmiaru, jeśli to możliwe.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
 ```go
 var (
-  // m1 is safe to read and write;
-  // m2 will panic on writes.
+  // m1 jest bezpieczne dla operacji odczytu oraz zapisu
+  // m2 wywoła panikę przy próbie zapisu
   m1 = map[T1]T2{}
   m2 map[T1]T2
 )
@@ -2103,8 +2003,8 @@ var (
 
 ```go
 var (
-  // m1 is safe to read and write;
-  // m2 will panic on writes.
+  // m1 jest bezpieczne dla operacji odczytu oraz zapisu
+  // m2 wywoła panikę przy próbie zapisu
   m1 = make(map[T1]T2)
   m2 map[T1]T2
 )
@@ -2113,25 +2013,22 @@ var (
 </td></tr>
 <tr><td>
 
-Declaration and initialization are visually similar.
+Deklaracja oraz inicjalizacja są podobne wizualnie.
 
 </td><td>
 
-Declaration and initialization are visually distinct.
+Deklaracja oraz inicjalizacja są odróżnialne wizualnie.
 
 </td></tr>
 </tbody></table>
 
-Where possible, provide capacity hints when initializing
-maps with `make()`. See
-[Prefer Specifying Map Capacity Hints](#prefer-specifying-map-capacity-hints)
-for more information.
+Tam, gdzie to możliwe, stosuj wskazówki dotyczące pojemności podczas inicjalizacji z użyciem funkcji `make()`. Więcej szczegółów znajdziesz w rozdziale [Określaj wskazówki dotyczące pojemności map](#określaj-wskazówki-dotyczące-pojemności-map).
 
-On the other hand, if the map holds a fixed list of elements,
-use map literals to initialize the map.
+Z drugiej strony, jeśli mapa zawiera z góry ustalone elementy,
+do jej inicjalizacji użyj literału.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -2155,20 +2052,17 @@ m := map[T1]T2{
 </td></tr>
 </tbody></table>
 
+Podstawową zasadą jest używanie literałów mapy podczas dodawania stałego zestawu
+elementów w czasie inicjalizacji, w przeciwnym wypadku użyj funkcji `make` (i podawaj wskazówki dotyczące rozmiaru jeżeli to możliwe).
 
-The basic rule of thumb is to use map literals when adding a fixed set of
-elements at initialization time, otherwise use `make` (and specify a size hint
-if available).
+### Formatuj łańcuchy znakowe poza funkcją "Printf"
 
-### Format Strings outside Printf
+Jeśli deklarujesz formatowalne łańcuchy znakowe w stylu funkcji `Printf` twórz z nich stałe przy użyciu `const`.
 
-If you declare format strings for `Printf`-style functions outside a string
-literal, make them `const` values.
-
-This helps `go vet` perform static analysis of the format string.
+Pomoże to poleceniu `go vet` w wykonaniu statycznej analizy formatowania wewnątrz tego łańcucha.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -2187,40 +2081,34 @@ fmt.Printf(msg, 1, 2)
 </td></tr>
 </tbody></table>
 
-### Naming Printf-style Functions
+### Nazewnictwo funkcji "Printf-style"
 
-When you declare a `Printf`-style function, make sure that `go vet` can detect
-it and check the format string.
+Kiedy deklarujesz funkcje w stylu funkcji `Printf`, upewnij się że `go vet` jest w stanie ją wykryć oraz sprawdzić wewnętrzny łańcuch znakowy zawierający formatowanie.
 
-This means that you should use predefined `Printf`-style function
-names if possible. `go vet` will check these by default. See [Printf family]
-for more information.
+Oznacza to że powinieneś używać predefiniowanych nazw w stylu `Printf` jeżeli to tylko możliwe. `go vet` domyślnie sprawdza takie funkcje. W celu poznania szczegółów zobacz [Printf family].  
 
   [Printf family]: https://golang.org/cmd/vet/#hdr-Printf_family
 
-If using the predefined names is not an option, end the name you choose with
-f: `Wrapf`, not `Wrap`. `go vet` can be asked to check specific `Printf`-style
-names but they must end with f.
+Jeżeli używanie predefiniowanych nazw nie jest możliwe, zakońćż wybraną nazwę literą "f" nazywają funkcję `Wrapf` (nie `Wrap`). `go vet` posiada opcje pozwalające na wyspecyfiukowanie funkcji w stylu `Printf` jednak ich nazwy muszą kończyć się literą "f".
 
 ```shell
 $ go vet -printfuncs=wrapf,statusf
 ```
 
-See also [go vet: Printf family check].
+Zobacz również artykuł [go vet: Printf family check].
 
   [go vet: Printf family check]: https://kuzminva.wordpress.com/2017/11/07/go-vet-printf-family-check/
 
-## Patterns
+## Wzorce
 
-### Test Tables
+### Tablice testowe
 
-Use table-driven tests with [subtests] to avoid duplicating code when the core
-test logic is repetitive.
+Stosuj testy oparte o tablice testowe z wykorzystaniem [subtests] aby uniknąć powielania kodu w przypadku gdy logika testów jest powtarzalna.
 
   [subtests]: https://blog.golang.org/subtests
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -2293,12 +2181,9 @@ for _, tt := range tests {
 </td></tr>
 </tbody></table>
 
-Test tables make it easier to add context to error messages, reduce duplicate
-logic, and add new test cases.
+Tablice testowe ułatwiają dodawanie kontekstu do komunikatów błędów, redukują duplikacje w logice oraz ułatwiają dodawanie nowych scenariuszy testowych.
 
-We follow the convention that the slice of structs is referred to as `tests`
-and each test case `tt`. Further, we encourage explicating the input and output
-values for each test case with `give` and `want` prefixes.
+Postępujemy zgodnie z konwencją mówiącą że wycinki struktur testowych należy nazwać `tests` a każdy scenariusz testowy `tt`. Ponadto zachęcamy do jawnego oznaczania danych wejściowych oraz wyjściowych dla każdego scenariusza testowego prefiksami `give` oraz `want`.
 
 ```go
 tests := []struct{
@@ -2314,24 +2199,19 @@ for _, tt := range tests {
 }
 ```
 
-### Functional Options
+### Opcje funkcjonalne
 
-Functional options is a pattern in which you declare an opaque `Option` type
-that records information in some internal struct. You accept a variadic number
-of these options and act upon the full information recorded by the options on
-the internal struct.
+Opcje funkcjonalne to wzorzec, w którym deklarujesz przykrywający typ `Option`, który rejestruje informacje w pewnej nieeksportowanej (wewnętrznej, prywatnej) strukturze. Akceptujesz dowolną ilość takich opcji i działasz na podstawie pełnej informacji zawartej przez opcje w tej strukturze.
 
-Use this pattern for optional arguments in constructors and other public APIs
-that you foresee needing to expand, especially if you already have three or
-more arguments on those functions.
+Użyj tego wzorca dla opcjonalnych argumentów w konstruktorach i innych publicznych interfejsach API, szczególnie gdy przewidujesz późniejszą potrzebę ich rozszerzania, zwłaszcza jeśli masz już funkcje z trzema lub większą ilością argumentów.
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
 <tbody>
 <tr><td>
 
 ```go
-// package db
+// pakiet db
 
 func Connect(
   addr string,
@@ -2341,8 +2221,8 @@ func Connect(
   // ...
 }
 
-// Timeout and caching must always be provided,
-// even if the user wants to use the default.
+// "Timeout" oraz "caching" są zawsze wymagane
+// nawet jeżeli użytkownik chce użyć ich wartości domyślnych. 
 
 db.Connect(addr, db.DefaultTimeout, db.DefaultCaching)
 db.Connect(addr, newTimeout, db.DefaultCaching)
@@ -2358,7 +2238,7 @@ type options struct {
   caching bool
 }
 
-// Option overrides behavior of Connect.
+// Opcja zastępuje zachowanie funkcji Connect.
 type Option interface {
   apply(*options)
 }
@@ -2381,7 +2261,7 @@ func WithCaching(cache bool) Option {
   })
 }
 
-// Connect creates a connection.
+// Connect tworzy połączenie.
 func Connect(
   addr string,
   opts ...Option,
@@ -2398,7 +2278,7 @@ func Connect(
   // ...
 }
 
-// Options must be provided only if needed.
+// Opcje należy podać tylko w razie potrzeby.
 
 db.Connect(addr)
 db.Connect(addr, db.WithTimeout(newTimeout))
@@ -2413,13 +2293,10 @@ db.Connect(
 </td></tr>
 </tbody></table>
 
-See also,
+Zobacz również,
 
 - [Self-referential functions and the design of options]
 - [Functional options for friendly APIs]
 
   [Self-referential functions and the design of options]: https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html
   [Functional options for friendly APIs]: https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
-
-<!-- TODO: replace this with parameter structs and functional options, when to
-use one vs other -->
