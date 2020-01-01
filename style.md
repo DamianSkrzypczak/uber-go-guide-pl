@@ -2213,62 +2213,114 @@ Użyj tego wzorca dla opcjonalnych argumentów w konstruktorach i innych publicz
 ```go
 // pakiet db
 
-func Connect(
+func Open(
   addr string,
-  timeout time.Duration,
-  caching bool,
+  cache bool,
+  logger *zap.Logger
 ) (*Connection, error) {
   // ...
 }
-
-// "Timeout" oraz "caching" są zawsze wymagane
-// nawet jeżeli użytkownik chce użyć ich wartości domyślnych. 
-
-db.Connect(addr, db.DefaultTimeout, db.DefaultCaching)
-db.Connect(addr, newTimeout, db.DefaultCaching)
-db.Connect(addr, db.DefaultTimeout, false /* caching */)
-db.Connect(addr, newTimeout, false /* caching */)
 ```
 
 </td><td>
 
 ```go
-type options struct {
-  timeout time.Duration
-  caching bool
+// pakiet db
+
+type Option interface {
+  // ...
 }
 
-// Opcja zastępuje zachowanie funkcji Connect.
+func WithCache(c bool) Option {
+  // ...
+}
+
+func WithLogger(log *zap.Logger) Option {
+  // ...
+}
+
+// Open otwiera połączenie.
+func Open(
+  addr string,
+  opts ...Option,
+) (*Connection, error) {
+  // ...
+}
+```
+
+</td></tr>
+<tr><td>
+
+"cache" oraz "logger" są zawsze wymagane
+nawet jeżeli użytkownik chce użyć ich wartości domyślnych.
+
+```go
+db.Open(addr, db.DefaultCache, zap.NewNop())
+db.Open(addr, db.DefaultCache, log)
+db.Open(addr, false /* cache */, zap.NewNop())
+db.Open(addr, false /* cache */, log)
+```
+
+</td><td>
+
+Opcje można podać tylko w razie potrzeby.
+
+```go
+db.Open(addr)
+db.Open(addr, db.WithLogger(log))
+db.Open(addr, db.WithCache(false))
+db.Open(
+  addr,
+  db.WithCache(false),
+  db.WithLogger(log),
+)
+```
+
+</td></tr>
+</tbody></table>
+
+Sugerowany przez nas sposób implementacji tego wzorca opiera się o interfejs `Option` zawierjaący nieeksportowaną metodę rejestrującą opcje w nieexportowanej strukturze `options`.
+
+```go
+type options struct {
+  cache  bool
+  logger *zap.Logger
+}
+
 type Option interface {
   apply(*options)
 }
 
-type optionFunc func(*options)
+type cacheOption bool
 
-func (f optionFunc) apply(o *options) {
-  f(o)
+func (c cacheOption) apply(opts *options) {
+  opts.cache = bool(c)
 }
 
-func WithTimeout(t time.Duration) Option {
-  return optionFunc(func(o *options) {
-    o.timeout = t
-  })
+func WithCache(c bool) Option {
+  return cacheOption(c)
 }
 
-func WithCaching(cache bool) Option {
-  return optionFunc(func(o *options) {
-    o.caching = cache
-  })
+type loggerOption struct {
+  Log *zap.Logger
 }
 
-// Connect tworzy połączenie.
-func Connect(
+func (l loggerOption) apply(opts *options) {
+  opts.Logger = l.Log
+}
+
+func WithLogger(log *zap.Logger) Option {
+  return loggerOption{Log: log}
+}
+
+// Open otwiera połączenie.
+func Open(
   addr string,
   opts ...Option,
 ) (*Connection, error) {
   options := options{
-    timeout: defaultTimeout,
-    caching: defaultCaching,
+    cache:  defaultCache,
+    logger: zap.NewNop(),
   }
 
   for _, o := range opts {
@@ -2277,21 +2329,11 @@ func Connect(
 
   // ...
 }
-
-// Opcje należy podać tylko w razie potrzeby.
-
-db.Connect(addr)
-db.Connect(addr, db.WithTimeout(newTimeout))
-db.Connect(addr, db.WithCaching(false))
-db.Connect(
-  addr,
-  db.WithCaching(false),
-  db.WithTimeout(newTimeout),
-)
 ```
 
-</td></tr>
-</tbody></table>
+Warto zaznaczyć że istnieje sposób implementacji tego wzorca oparty na domnięciach
+jednak jesteśmy zdania że powyższy wzorzec zapewnia autorowi większą elastyczność
+i jest łatwiejszy w debugowaniu i testowaniu przez użytkowników. Sposób ten pozwala w szczególności na porównywanie opcji między sobą w testach oraz imitacjach (mock'ach) co w przypadku domknięć staje się niemożliwe. Ponad to pozwala opcjom na implementowanie innych interfejsów takich jak `fmt.Stringer`, który umożliwia dodanie opcjom reprezentacji czytelnej dla użytkownika.
 
 Zobacz również,
 
