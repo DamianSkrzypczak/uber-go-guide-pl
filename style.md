@@ -602,7 +602,7 @@ func open(file string) error {
 }
 
 func use() {
-  if err := open(); err != nil {
+  if err := open("testfile.txt"); err != nil {
     if strings.Contains(err.Error(), "not found") {
       // kod obsługi błędu
     } else {
@@ -628,7 +628,7 @@ func open(file string) error {
 }
 
 func use() {
-  if err := open(); err != nil {
+  if err := open("testfile.txt"); err != nil {
     if _, ok := err.(errNotFound); ok {
       // kod obsługi błędu
     } else {
