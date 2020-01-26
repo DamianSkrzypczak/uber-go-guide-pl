@@ -55,18 +55,19 @@ row before the </tbody></table> line.
 - [Wstęp](#wstęp)
 - [Wskazówki](#wskazówki)
   - [Wskaźniki typów interfejsowych](#wskaźniki-typów-interfejsowych)
-  - [Odbiorniki (Receivers) i Interfejsy](#odbiorniki-(receivers)-i-interfejsy)
+  - [Odbiorniki (Receivers) i Interfejsy](#odbiorniki-receivers-i-interfejsy)
   - [Poprawność wartości zerowych Mutexów](#poprawność-wartości-zerowych-mutexów)
   - [Ograniczenia kopiowania wycinków i map](#ograniczenia-kopiowania-wycinków-i-map)
-  - [Stosuj "defer" by opóźnić operacje czyszczenia (clean-up)](#Stosuj-"defer"-by-opóźnić-operacje-czyszczenia-(clean-up))
-  - [Kanały (channels) powinny mieć rozmiar 1 lub być niebuforowane](#kanały-(channels)-powinny-mieć-rozmiar-1-lub-być-niebuforowane)
+  - [Stosuj "defer" by opóźnić operacje czyszczenia (clean-up)](#stosuj-defer-by-opóźnić-operacje-czyszczenia-clean-up)
+  - [Kanały (channels) powinny mieć rozmiar 1 lub być niebuforowane](#kanały-channels-powinny-mieć-rozmiar-1-lub-być-niebuforowane)
   - [Wyliczanie rozpoczynaj od 1](#wyliczanie-rozpoczynaj-od-1)
   - [Typy błędów](#typy-błędów)
-  - [Opakowywanie błędów (Error wrapping)](#opakowywanie-błędów-(error-wrapping))
+  - [Opakowywanie błędów (Error wrapping)](#opakowywanie-błędów-error-wrapping)
   - [Obsługa błędów asercji typów](#obsługa-błędów-asercji-typów)
-  - [Nie "panikuj"](#nie-"panikuj")
+  - [Nie "panikuj"](#nie-panikuj)
   - [Używaj go.uber.org/atomic](#używaj-gouberorgatomic)
   - [Unikaj mutowalnych zmiennych globalnych](#unikaj-mutowalnych-zmiennych-globalnych)
+  - [Unikaj osadzania typów (type embedding) w strukturach publicznych](#unikaj-osadzania-typów-type-embedding-w-strukturach-publicznych)
 - [Wydajność](#wydajność)
   - [Preferuj strconv ponad fmt](#preferuj-strconv-ponad-fmt)
   - [Unikaj konwersji string-to-byte](#unikaj-konwersji-string-to-byte)
@@ -80,20 +81,20 @@ row before the </tbody></table> line.
   - [Aliasy importowanych bibliotek](#aliasy-importowanych-bibliotek)
   - [Grupowanie i porządkowanie funkcji](#grupowanie-i-porządkowanie-funkcji)
   - [Redukuj zagnieżdzenia](#redukuj-zagnieżdzenia)
-  - [Niepotrzebne instrukcje "Else"](#niepotrzebne-instrukcje-"else")
+  - [Niepotrzebne instrukcje "else"](#niepotrzebne-instrukcje-else)
   - [Deklarowanie zmiennych najwyższego poziomu](#deklarowanie-zmiennych-najwyższego-poziomu)
   - [Rozpoczynaj nieeksportowane zmienne globalne znakiem _](#rozpoczynaj-nieeksportowane-zmienne-globalne-znakiem-_)
-  - [Zagnieżdzanie w strukturach (embedding)](#zagnieżdzanie-w-strukturach-(embedding))
+  - [Zagnieżdzanie w strukturach (embedding)](#zagnieżdzanie-w-strukturach-embedding)
   - [Jawnie podawaj nazwy pól podczas inicjalizacji struktur](#jawnie-podawaj-nazwy-pól-podczas-inicjalizacji-struktur)
   - [Deklarowanie zmiennych lokalnych](#deklarowanie-zmiennych-lokalnych)
-  - ["nil" to poprawna wartość wycinka](#"nil"-to-poprawna-wartość-wycinka)
-  - [Redukuj zasięg (scope) zmiennych](#redukuj-zasięg-(scope)-zmiennych)
-  - [Unikaj przekazywania "surowych" wartości parametrów](#unikaj-przekazywania-"surowych"-wartości-parametrów)
-  - [Używaj literałów znakowych (string literals) w celu uniknięcia znaków ucieczki](#używaj-literałów-znakowych-(string-literals)-w-celu-uniknięcia-znaków-ucieczki)
+  - ["nil" to poprawna wartość wycinka](#nil-to-poprawna-wartość-wycinka)
+  - [Redukuj zasięg (scope) zmiennych](#redukuj-zasięg-scope-zmiennych)
+  - [Unikaj przekazywania "surowych" wartości parametrów](#unikaj-przekazywania-surowych-wartości-parametrów)
+  - [Używaj literałów znakowych (string literals) w celu uniknięcia znaków ucieczki](#używaj-literałów-znakowych-string-literals-w-celu-uniknięcia-znaków-ucieczki)
   - [Inicjalizowanie referencji do struktur](#inicjalizowanie-referencji-do-struktur)
   - [Inicjalizowanie map](#inicjalizowanie-map)  
-  - [Formatuj łańcuchy znakowe poza funkcją "Printf"](#formatuj-łańcuchy-znakowe-poza-funkcją-"Printf")
-  - [Nazewnictwo funkcji "Printf-style"](#nazewnictwo-funkcji-"printf-style")
+  - [Formatuj łańcuchy znakowe poza funkcją "Printf"](#formatuj-łańcuchy-znakowe-poza-funkcją-Printf)
+  - [Nazewnictwo funkcji "Printf-style"](#nazewnictwo-funkcji-printf-style)
 - [Wzorce](#wzorce)
   - [Tablice testowe](#tablice-testowe)
   - [Opcje funkcjonalne](#opcje-funkcjonalne)
@@ -530,7 +531,7 @@ Podczas zwracania błędów, zadaj sobie poniższe pytania w celu wybrania opcji
 - Czy chce zwrócić prosty błąd bez żadnych dodatkowych informacji? Jeśli tak, [`errors.New`] powinno być wystarczające.
 - Czy klient (twojej funkcji) powinien móc rozpoznać oraz obsłużyć ten błąd? Jeśli tak, powinieneś zastosować własny typ i zaimplementować w nim metodę `Error()`
 - Czy jedynie propagujesz błąd zwracany przez inną funkcje? Jeśli tak, zobacz sekcję
-na temat [opakowywania błędów](#opakowywanie-błędów-(error-wrapping)).
+na temat [opakowywania błędów](#opakowywanie-błędów-error-wrapping).
 - W pozostałych przypadkach dobrym pomysłem jest użycie [`fmt.Errorf`].
 
   [`errors.New`]: https://golang.org/pkg/errors/#New
@@ -976,6 +977,120 @@ func TestSigner(t *testing.T) {
 
 </td></tr>
 </tbody></table>
+
+# Unikaj osadzania typów (type embedding) w strukturach publicznych
+
+Typy osadzane w strukturach publicznych powodują wyciekanie
+szczegółów o implementacji, ograniczają ewolucję typów
+oraz negatywnie wpływają na czytelność dokumentacji (zaciemniają ją).
+
+Zakładając, że zaimplementowałeś różne typy list przy użyciu współdzielonego `AbstractList`, unikaj osadzania `AbstractList` w twoich konretnych implementacjach list. Zamiast tego dodaj do swojej konkretnej listy metody oddelegowujące zadanie do metod abstrakcyjnego typu listy `AbstractList`.
+
+```go
+type AbstractList struct {}
+// Add dodaje element do listy.
+func (l *AbstractList) Add(e Entity) {
+  // ...
+}
+// Remove usuwa element z listy.
+func (l *AbstractList) Remove(e Entity) {
+  // ...
+}
+```
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+// ConcreteList stanowi listę elementów.
+type ConcreteList struct {
+  *AbstractList
+}
+```
+
+</td><td>
+
+```go
+// ConcreteList stanowi listę elementów.
+type ConcreteList struct {
+  list *AbstractList
+}
+// Add dodaje element do listy.
+func (l *ConcreteList) Add(e Entity) {
+  return l.list.Add(e)
+}
+// Remove usuwa element z listy.
+func (l *ConcreteList) Remove(e Entity) {
+  return l.list.Remove(e)
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Go pozwala na osadzanie typów (type embedding) w ramach kompromisu między dziedziczeniem a kompozycją. Typ zewnętrzny otrzymuje niejawne kopie metod typu osadzonego. Metody te domyślnie oddelegowują zadanie do metod osadzonej instacji.
+
+  [osadzanie typów (type embedding)]: https://golang.org/doc/effective_go.html#embedding
+
+W procesie osadzania struktura zyskuje pole o tej samej nazwie co osadzony w niej typ. Zatem jeśli typ osadzony jest publiczny, pole również będzie publiczne. W celu zachowania zgodności wstecznej, każda przyszła wersja typu zewnętrznego będzie musiała zachować typ osadzony.
+
+Osadzony typ jest rzadko potrzebny.
+To głównie wygodny sposób na uniknięcie żmudnego pisania metod oddelegowujących.
+
+Nawet osadzenie kompatybilnego *interfejsu* `AbstractList` zamiast struktury, zapewniłby deweloperowi większą elastyczność w zakresie zmian w przyszłości, nadal jednak powodowałby wyciek informacji o tym że konkretna implementacja listy wykorzystuje implementację abstrakcyjną.
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+// AbstractList stanowi ogólną implementację
+// dla kilku typów list.
+type AbstractList interface {
+  Add(Entity)
+  Remove(Entity)
+}
+// ConcreteList stanowi listę elementów.
+type ConcreteList struct {
+  AbstractList
+}
+```
+
+</td><td>
+
+```go
+// ConcreteList stanowi listę elementów.
+type ConcreteList struct {
+  list *AbstractList
+}
+// Add dodaje element do listy.
+func (l *ConcreteList) Add(e Entity) {
+  return l.list.Add(e)
+}
+// Remove usuwa element z listy.
+func (l *ConcreteList) Remove(e Entity) {
+  return l.list.Remove(e)
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Zarówno w przypadku osadzania struktur jak i interfejsów, osadzanie typów ogranicza ewolucję typu.
+
+- Dodawanie metod do interfejsu osadzonego łamie kompatybilność.
+- Usuwanie metod z osadzanych struktur łamie kompatybilność.
+- Usuwanie typu osadzonego łamie kompatybilność.
+- Wymiana typu osadzonego, nawet jeżeli zamiennik spełnia ten same interfejs, łamie kompatybilność.
+
+*[przyp. tłum. Wspomniane wyżej "łamanie kompatybilności" odnosi się do tzw. ["breaking change"]]*  
+
+  ["breaking change"]: https://en.wiktionary.org/wiki/breaking_change
+
+Chociaż pisanie tych dodatkowych metod delegujących jest uciążliwe, dodatkowy wysiłek pozwala na ukrycie szczegółów implementacyjnych, pozostawia więcej miejsca na zmiany, a takze eliminuje pośrednie ujawnianie pełnego interfejsu listy w dokumentacji.
 
 ## Wydajność
 
@@ -1475,7 +1590,7 @@ for _, v := range data {
 </td></tr>
 </tbody></table>
 
-### Niepotrzebne instrukcje "Else"
+### Niepotrzebne instrukcje "else"
 
 Jeśli zmienna jest ustawiona dla obu ścieżek instrukcji if, instrukcja ta
 może zostać zastąpiona pojedyńczą ścieżką instrukcji if.
