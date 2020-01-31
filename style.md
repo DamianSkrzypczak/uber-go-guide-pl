@@ -61,6 +61,7 @@ row before the </tbody></table> line.
   - [Stosuj "defer" by opóźnić operacje czyszczenia (clean-up)](#stosuj-defer-by-opóźnić-operacje-czyszczenia-clean-up)
   - [Kanały (channels) powinny mieć rozmiar 1 lub być niebuforowane](#kanały-channels-powinny-mieć-rozmiar-1-lub-być-niebuforowane)
   - [Wyliczanie rozpoczynaj od 1](#wyliczanie-rozpoczynaj-od-1)
+  - [Używaj pakietu `"time"` do obsługi czasu](#używaj-pakietu-time-do-obsługi-czasu)
   - [Typy błędów](#typy-błędów)
   - [Opakowywanie błędów (Error wrapping)](#opakowywanie-błędów-error-wrapping)
   - [Obsługa błędów asercji typów](#obsługa-błędów-asercji-typów)
@@ -516,6 +517,155 @@ const (
 
 // LogToStdout=0, LogToFile=1, LogToRemote=2
 ```
+
+### Używaj pakietu `"time"` do obsługi czasu
+
+Czas to skomplikowany temat. Nieprawidłowe założenia często dotyczące „czasu” zakładają że:
+
+1. Dzień ma 24 godziny
+2. Godzina składa się z 60 minut
+3. Tydzień ma 7 dni
+4. Rok to 365 dni
+5. [Oraz wiele wiele innych](https://infiniteundo.com/post/25326999628/falsehoods-programmers-believe-about-time)
+
+Dla przykładu przypadek *1* pokazuje, że dodanie 24 godzin do pewnego punktu w czasie nie zagwarantuje otrzymania kolejnego dnia kalendarzowego.
+
+#### Używaj `time.Time` dla punktów w czasie
+
+Użyj [`time.Time`] gdy masz do czynienia z punktami w czasie. Metody `time.Time` wykorzystuj do porównywania, dodawania lub odejmowania czasu.
+
+  [`time.Time`]: https://golang.org/pkg/time/#Time
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+func isActive(now, start, stop int) bool {
+  return start <= now && now < stop
+}
+```
+
+</td><td>
+
+```go
+func isActive(now, start, stop time.Time) bool {
+  return (start.Before(now) || start.Equal(now)) && now.Before(stop)
+}
+```
+
+</td></tr>
+</tbody></table>
+
+#### Używaj `time.Duration` dla przedziałów czasowych
+
+Use [`time.Duration`] when dealing with periods of time.
+
+  [`time.Duration`]: https://golang.org/pkg/time/#Duration
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+func poll(delay int) {
+  for {
+    // ...
+    time.Sleep(time.Duration(delay) * time.Millisecond)
+  }
+}
+poll(10) // czy to były sekundy czy milisekundy?
+```
+
+</td><td>
+
+```go
+func poll(delay time.Duration) {
+  for {
+    // ...
+    time.Sleep(delay)
+  }
+}
+poll(10*time.Second)
+```
+
+</td></tr>
+</tbody></table>
+
+Wracając do przykładu z dodawaniem 24 godzin to punktu w czasie, metoda której użyjemy do dodawania zależy od intencji. Jeżeli chcemy uzyskać tą samą porę, lecz następnego dnia, powinniśmy użyć [`Time.AddDate`]. Jednakże, jeżeli chcemy gwarancji że uzyskamy punkt w czasie przesunięty o 24 od podanego powinniśmy posłużyć się [`Time.Add`].
+
+  [`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
+  [`Time.Add`]: https://golang.org/pkg/time/#Time.Add
+
+```go
+newDay := t.AddDate(0 /* lata */, 0, /* miesiące */, 1 /* dni */)
+maybeNewDay := t.Add(24 * time.Hour)
+```
+
+#### Używaj `time.Time` oraz `time.Duration` z systemami zewnętrznymi
+
+Używaj `time.Time` i `time.Duration` w interakcjach z systemami zewnętrznymi gdy tylko to możliwe.
+
+Na przykład:
+
+- Flagi lini poleceń: pakiet [`flag`] wspiera `time.Duration` poprzez
+  [`time.ParseDuration`]
+- JSON: [`encoding/json`] wspiera kodowanie `time.Time` jako [RFC 3339] string poprzez [metodę `UnmarshalJSON`]
+- SQL:  [`database/sql`] wspiera konwersję z kolumn `DATETIME` oraz `TIMESTAMP` w `time.Time` i spowrotem jeśli sterownik to obsługuje.
+- YAML: [`gopkg.in/yaml.v2`] wspiera `time.Time` jako [RFC 3339] string, oraz `time.Duration` poprzez [`time.ParseDuration`].
+
+  [`flag`]: https://golang.org/pkg/flag/
+  [`time.ParseDuration`]: https://golang.org/pkg/time/#ParseDuration
+  [`encoding/json`]: https://golang.org/pkg/encoding/json/
+  [RFC 3339]: https://tools.ietf.org/html/rfc3339
+  [metodę `UnmarshalJSON`]: https://golang.org/pkg/time/#Time.UnmarshalJSON
+  [`database/sql`]: https://golang.org/pkg/database/sql/
+  [`gopkg.in/yaml.v2`]: https://godoc.org/gopkg.in/yaml.v2
+
+Jeżeli nie jest możliwe aby we wspomnianych interakcjach użyć `time.Duration`, użyj `int` albo `float64` oraz dołącz jednostkę do nazwy pola.
+
+Na przykładkl, ponieważ `encoding/json` nie wpisra `time.Duration`,
+nazwa jednostki została zawarta w nazwie pola.
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+// {"interval": 2}
+type Config struct {
+  Interval int `json:"interval"`
+}
+```
+
+</td><td>
+
+```go
+// {"intervalMillis": 2000}
+type Config struct {
+  IntervalMillis int `json:"intervalMillis"`
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Jeżeli nie jest możliwe aby we wspomnianych interakcjach użyć `time.Time`, chyba że uzgodniono inaczej, użyj `string` i formatuj znaczniki czasu (timestamps) zgodnie z definicją zawartą w [RFC 3339].
+
+Format ten jest używany domyślnie przez [`Time.UnmarshalText`] i jest
+dostępny do użytku w `Time.Format` oraz `time.Parse` poprzez [`time.RFC3339`].
+
+  [`Time.UnmarshalText`]: https://golang.org/pkg/time/#Time.UnmarshalText
+  [`time.RFC3339`]: https://golang.org/pkg/time/#RFC3339
+
+Chociaż w praktyce nie stanowi to problemu, należy pamiętać, że
+Pakiet `"time"` nie obsługuje parsowania znaczników czasu (timestamps) z sekundami przestępnymi ([8728]), ani nie uwzględnia sekund przestępnych w obliczeniach ([15190]). Jeśli porównasz dwa punkty w czasie, różnica nie obejmie sekund przestępnych, które mogły wystąpić między tymi dwoma momentami.
+
+  [8728]: https://github.com/golang/go/issues/8728
+  [15190]: https://github.com/golang/go/issues/15190
 
 ### Typy błędów
 

@@ -1,3 +1,8 @@
+# 2020-02-01
+
+- Update based on original repository changes from `2020-01-30`:
+    > Recommend using the `time` package when dealing with time.
+
 # 2020-01-26
 
 - Update based on original repository changes from `2020-01-25`:
