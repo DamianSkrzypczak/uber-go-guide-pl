@@ -1,5 +1,10 @@
 # 2020-02-01
 
+- Update based on the original repository changes from [2020-02-24](https://github.com/uber-go/guide/blob/master/CHANGELOG.md#2020-02-24):
+    > Add guidance on verifying interface compliance with compile-time checks.
+
+# 2020-02-01
+
 - Update based on the original repository changes from [2020-01-30](https://github.com/uber-go/guide/blob/master/CHANGELOG.md#2020-01-30):
     > Recommend using the `time` package when dealing with time.
 

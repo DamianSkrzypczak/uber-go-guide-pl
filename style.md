@@ -55,6 +55,7 @@ row before the </tbody></table> line.
 - [Wstęp](#wstęp)
 - [Wskazówki](#wskazówki)
   - [Wskaźniki typów interfejsowych](#wskaźniki-typów-interfejsowych)
+  - [Weryfikuj zgodność z interfejsem](#weryfikuj-zgodność-z-interfejsem)
   - [Odbiorniki (Receivers) i Interfejsy](#odbiorniki-receivers-i-interfejsy)
   - [Poprawność wartości zerowych Mutexów](#poprawność-wartości-zerowych-mutexów)
   - [Ograniczenia kopiowania wycinków i map](#ograniczenia-kopiowania-wycinków-i-map)
@@ -138,6 +139,68 @@ Interfejs składa się z dwóch pól:
 2. Wskaźnik na dane. Jeśli wartością jest wskaźnik, jest on przechowywany bezpośrednio. W innym przypadku, gdy wartością są dane, przechowywany zostaje  wskaźnik na te dane.
 
 Jeśli więc chcesz, aby metody typu interfejsowego modyfikowały jego dane, musisz w nich używać wskaźnika.
+
+### Weryfikuj zgodność z interfejsem
+
+W razie potrzeby weryfikuj zgodność z interfejsem w czasie kompilacji.
+Np. dla:
+
+- Wyeksportowanych typów, które są wymagane do wdrożenia określonych interfejsów w ramach kontraktu API
+- Wyexportowanych jak i nieexportowanych typów będących częscią grupy typów implementujących ten sam interfejs
+- Innych przypadków, w których naruszenie interfejsu spowodowałoby problemy po stronie użytkowników
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+type Handler struct {
+  // ...
+}
+func (h *Handler) ServeHTTP(
+  w http.ResponseWriter,
+  r *http.Request,
+) {
+  ...
+}
+```
+
+</td><td>
+
+```go
+type Handler struct {
+  // ...
+}
+var _ http.Handler = (*Handler)(nil)
+func (h *Handler) ServeHTTP(
+  w http.ResponseWriter,
+  r *http.Request,
+) {
+  // ...
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Instrukcja `var _ http.Handler = (*Handler)(nil)` spowoduje błąd kompilacji jeżeli `*Handler` kiedykolwiek przestanie spełniać interfejs `http.Handler`.
+
+Prawa strona przypisania powinna być wartością zerową testowanego (asserted) typu. Jest to `nil` dla wskaźników do typów (jak `*Handler`), wycinków oraz map oraz pusta instancja dla struktur.
+
+```go
+type LogHandler struct {
+  h   http.Handler
+  log *zap.Logger
+}
+var _ http.Handler = LogHandler{}
+func (h LogHandler) ServeHTTP(
+  w http.ResponseWriter,
+  r *http.Request,
+) {
+  // ...
+}
+```
 
 ### Odbiorniki (Receivers) i Interfejsy
 
