@@ -2249,7 +2249,7 @@ const (
 type Status int
 
 const (
-  StatusReady = iota + 1
+  StatusReady Status = iota + 1
   StatusDone
   // Może w przyszłości dodamy kolejny możliwy status - StatusInProgress.
 )
