@@ -94,7 +94,7 @@ row before the </tbody></table> line.
   - [Unikaj przekazywania "surowych" wartości parametrów](#unikaj-przekazywania-surowych-wartości-parametrów)
   - [Używaj literałów znakowych (string literals) w celu uniknięcia znaków ucieczki](#używaj-literałów-znakowych-string-literals-w-celu-uniknięcia-znaków-ucieczki)
   - [Inicjalizowanie referencji do struktur](#inicjalizowanie-referencji-do-struktur)
-  - [Inicjalizowanie map](#inicjalizowanie-map)  
+  - [Inicjalizowanie map](#inicjalizowanie-map)
   - [Formatuj łańcuchy znakowe poza funkcją "Printf"](#formatuj-łańcuchy-znakowe-poza-funkcją-Printf)
   - [Nazewnictwo funkcji "Printf-style"](#nazewnictwo-funkcji-printf-style)
 - [Wzorce](#wzorce)
@@ -104,7 +104,7 @@ row before the </tbody></table> line.
 ## Wstęp
 
 Style to konwencje zarządzania naszym kodem.
-Termin "styl" jest tutaj nieco mylący, ponieważ opisane tu konwencje obejmują znacznie większy obszar niżeli tylko formatowanie plików źródłowych, które zresztą robi za nas `gofmt`.  
+Termin "styl" jest tutaj nieco mylący, ponieważ opisane tu konwencje obejmują znacznie większy obszar niżeli tylko formatowanie plików źródłowych, które zresztą robi za nas `gofmt`.
 
 Celem niniejszego poradnika jest ustrukturyzowanie tych kowencji poprzez szczegółowe opisanie rekomendacji i przeciwwskazań (Dos and Don'ts) stosowanych przy pisaniu kodu w Go w firmie Uber. Zasady te istnieją w celu zachowania sprawnego zarządzania bazą kodu przy jednoczesnym umożliwieniu inżynierom produktywnego korzystania z cech oraz funkcjonalności języka Go.
 
@@ -131,7 +131,7 @@ Informacje na temat edytorów i ich wsparcia dla języka Go dostępne są pod li
 ### Wskaźniki typów interfejsowych
 
 Praktycznie nigdy nie ma potrzeby używania wskaźników do interfejsów.
-Powinieneś przekazywać interfejs poprzez wartość, ponieważ w dalszym ciągu możliwe jest aby przekazywany obiekt był wskaźnikiem na dane.  
+Powinieneś przekazywać interfejs poprzez wartość, ponieważ w dalszym ciągu możliwe jest aby przekazywany obiekt był wskaźnikiem na dane.
 
 Interfejs składa się z dwóch pól:
 
@@ -231,7 +231,7 @@ sVals[1].Read()
 
 sPtrs := map[int]*S{1: {"A"}}
 
-// Możesz wywoływać zarówno "Read" jak i "Write" jeśli użyjesz wskaźnika  
+// Możesz wywoływać zarówno "Read" jak i "Write" jeśli użyjesz wskaźnika
 sPtrs[1].Read()
 sPtrs[1].Write("test")
 ```
@@ -974,7 +974,7 @@ if !ok {
 
 ### Nie "panikuj"
 
-Kod działający produkcyjnie musi unikać paniki. Instrukcje "panic" są głównym źródłem tzw. [cascading failures] "awarii kaskadowych". Jeśli błąd wystąpi, funkcja powinna go zwróćić i tym samym umożliwić wywołującemu zdecydowanie o ścieżce jego dalszej obsługi.  
+Kod działający produkcyjnie musi unikać paniki. Instrukcje "panic" są głównym źródłem tzw. [cascading failures] "awarii kaskadowych". Jeśli błąd wystąpi, funkcja powinna go zwróćić i tym samym umożliwić wywołującemu zdecydowanie o ścieżce jego dalszej obsługi.
 
   [cascading failures]: https://en.wikipedia.org/wiki/Cascading_failure
 
@@ -1299,7 +1299,7 @@ Zarówno w przypadku osadzania struktur jak i interfejsów, osadzanie typów ogr
 - Usuwanie typu osadzonego łamie kompatybilność.
 - Wymiana typu osadzonego, nawet jeżeli zamiennik spełnia ten same interfejs, łamie kompatybilność.
 
-*[przyp. tłum. Wspomniane wyżej "łamanie kompatybilności" odnosi się do tzw. ["breaking change"]]*  
+*[przyp. tłum. Wspomniane wyżej "łamanie kompatybilności" odnosi się do tzw. ["breaking change"]]*
 
   ["breaking change"]: https://en.wiktionary.org/wiki/breaking_change
 
@@ -2141,6 +2141,10 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
+Pamiętaj, że mimo tego że `nil` jest jak najbardziej prawidłową wartością wycinka,
+nie jest tym samym co wycinek, który został zaalokowany z zerową długością - pierwszy stanowi pełnoprawną wartość `nil` a drugi nie -
+przez co w niektórych sytuacjach mogą być traktowane w zupełnie inny sposób (przykładem takie sytuacji jest serializacja do formatu JSON)
+
 ### Redukuj zasięg (scope) zmiennych
 
 Jeśli to tylko możliwe, staraj się redukować zakres (scope) zmiennych.
@@ -2413,7 +2417,7 @@ fmt.Printf(msg, 1, 2)
 
 Kiedy deklarujesz funkcje w stylu funkcji `Printf`, upewnij się że `go vet` jest w stanie ją wykryć oraz sprawdzić wewnętrzny łańcuch znakowy zawierający formatowanie.
 
-Oznacza to że powinieneś używać predefiniowanych nazw w stylu `Printf` jeżeli to tylko możliwe. `go vet` domyślnie sprawdza takie funkcje. W celu poznania szczegółów zobacz [Printf family].  
+Oznacza to że powinieneś używać predefiniowanych nazw w stylu `Printf` jeżeli to tylko możliwe. `go vet` domyślnie sprawdza takie funkcje. W celu poznania szczegółów zobacz [Printf family].
 
   [Printf family]: https://golang.org/cmd/vet/#hdr-Printf_family
 
