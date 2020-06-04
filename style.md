@@ -70,6 +70,7 @@ row before the </tbody></table> line.
   - [Używaj go.uber.org/atomic](#używaj-gouberorgatomic)
   - [Unikaj mutowalnych zmiennych globalnych](#unikaj-mutowalnych-zmiennych-globalnych)
   - [Unikaj osadzania typów (type embedding) w strukturach publicznych](#unikaj-osadzania-typów-type-embedding-w-strukturach-publicznych)
+  - [Unikaj używania nazw elementów wbudowanych (built-in names)](#unikaj-używania-nazw-elementów-wbudowanych-built-in-names)
 - [Wydajność](#wydajność)
   - [Preferuj strconv ponad fmt](#preferuj-strconv-ponad-fmt)
   - [Unikaj konwersji string-to-byte](#unikaj-konwersji-string-to-byte)
@@ -1191,7 +1192,7 @@ func TestSigner(t *testing.T) {
 </td></tr>
 </tbody></table>
 
-# Unikaj osadzania typów (type embedding) w strukturach publicznych
+### Unikaj osadzania typów (type embedding) w strukturach publicznych
 
 Typy osadzane w strukturach publicznych powodują wyciekanie
 szczegółów o implementacji, ograniczają ewolucję typów
@@ -1304,6 +1305,93 @@ Zarówno w przypadku osadzania struktur jak i interfejsów, osadzanie typów ogr
   ["breaking change"]: https://en.wiktionary.org/wiki/breaking_change
 
 Chociaż pisanie tych dodatkowych metod delegujących jest uciążliwe, dodatkowy wysiłek pozwala na ukrycie szczegółów implementacyjnych, pozostawia więcej miejsca na zmiany, a takze eliminuje pośrednie ujawnianie pełnego interfejsu listy w dokumentacji.
+
+### Unikaj używania nazw elementów wbudowanych (built-in names)
+
+[Specyfikacja języka Go] określa zestaw wbudowanych, predefiniowanych identyfikatorów,
+których nie należy używać jako nazw w programach Go.
+
+W zależności od kontekstu, ponowne użycie tych identyfikatorów jako nazw spowoduje
+zaciemnienie oryginału wewnątrz bieżącego zakresu leksyklanego (i wszystkich zagnieżdzonych w nim zakresów),
+lub sprawi że kod zacznie wprowadzać czytelnika w błąd.
+W najlepszym przypadku można spodziewać sie ostrzeżeń ze strony kompilatora,
+w najgorszym, taki kod może wprowadzać ukryte, trudne do wyłuskania błędy.
+
+  [Specyfikacja języka Go]: https://golang.org/ref/spec
+  [wbudowanych, predefiniowanych identyfikatorów]: https://golang.org/ref/spec#Predeclared_identifiers
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+var error string
+// zmienna `error` zaciemnia typ wbudowany
+// lub
+func handleErrorMessage(error string) {
+    // parametr `error` zaciemnia typ wbudowany
+}
+```
+
+</td><td>
+
+```go
+var errorMessage string
+// `error` dalej odwołuje się do typu wbudowanego
+// lub
+func handleErrorMessage(msg string) {
+    // `error` dalej odwołuje się do typu wbudowanego
+}
+```
+
+</td></tr>
+<tr><td>
+
+```go
+type Foo struct {
+    // Mimo że te pola technicznie nie
+    // niczego nie zaciemniającego,
+    // wyszukiwanie w tekście pod kątem
+    // fraz takich jak `error` lub `string`
+    // daje niejednoznaczne wyniki.
+    error  error
+    string string
+}
+func (f Foo) Error() error {
+    // `error` oraz `f.error` 
+    // są wizualnie pobodne
+    return f.error
+}
+func (f Foo) String() string {
+    // `string` oraz `f.string`
+    // są wizualnie podobne
+    return f.string
+}
+```
+
+</td><td>
+
+```go
+type Foo struct {
+    // frazy `error` oraz `string`
+    // są teraz jednoznaczne.
+    err error
+    str string
+}
+func (f Foo) Error() error {
+    return f.err
+}
+func (f Foo) String() string {
+    return f.str
+}
+```
+</td></tr>
+</tbody></table>
+
+Warto pamiętać że kompilator nie będzie generował błędów podczas korzystania
+z wcześniej zadeklarowanych identyfikatorów, ale narzędzia takie jak `go vet` powinny
+poprawnie wskazywać takie jak i inne przypadki zaciemniania nazw.
 
 ## Wydajność
 
