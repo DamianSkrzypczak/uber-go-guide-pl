@@ -147,7 +147,7 @@ W razie potrzeby weryfikuj zgodność z interfejsem w czasie kompilacji.
 Np. dla:
 
 - Wyeksportowanych typów, które są wymagane do wdrożenia określonych interfejsów w ramach kontraktu API
-- Wyexportowanych jak i nieexportowanych typów będących częscią grupy typów implementujących ten sam interfejs
+- Wyeksportowanych jak i nieeksportowanych typów będących częscią grupy typów implementujących ten sam interfejs
 - Innych przypadków, w których naruszenie interfejsu spowodowałoby problemy po stronie użytkowników
 
 <table>
@@ -2013,7 +2013,7 @@ const (
 
 ### Zagnieżdzanie w strukturach (embedding)
 
-Typy zagnieżdzone (takich jak mutexy) powinny występować na samej górze
+Typy zagnieżdzone (takie jak mutexy) powinny występować na samej górze
 listy pól struktury w której są zagnieżdzane. Powinny być również oddzielone pojedynczą pustą linią od zwykłych pól.
 
 <table>
@@ -2035,6 +2035,120 @@ type Client struct {
   http.Client
 
   version int
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Zagnieżdzanie typów powinno zapewniać wymierne korzyści takie jak dodawanie lub roszerzanie
+funkcjonalności w sposób zgodny semantycznie. Korzyści te nie powinny nieść ze sobą
+żadnych negatywnych skutków ubocznych dla użytkownika. (patrz [Unikaj osadzania typów (type embedding) w strukturach publicznych])
+
+  [Unikaj osadzania typów (type embedding) w strukturach publicznych]: #unikaj-osadzania-typów-type-embedding-w-strukturach-publicznych
+
+Zagnieżdzanie **nie powinno**:
+
+- Być zabiegiem czysto kosmetycznym lub motywowanym jedynie wygodą.
+- Utrudniać budowania oraz użytkowania typu zewnętrznego (zawierającego osadzany typ).
+- Wpływać na wartości zerowe struktury zewnętrznego. Jeśli typ zewnętrzny ma użyteczną wartość zerową, osadzenie typu wewnętrznego nie powinno tego zmieniać.
+- Upubliczniać w efekcie ubocznym funkcji lub pól typu wewnętrznego, które nie są w żaden sposób powiązane z typem zewnętrznym.
+- Eksponować typów nieeksportowanych.
+- Wpływać na semantykę kopiowania typu zewnętrznego.
+- Zmieniać API lub semantykę typu zewnetrznego.
+- Zagnieżdzać w sobie niekanoniczną formę typu wewnętrznego.
+- Upubliczniać szczegóły implementacyjne typu zewnętrznego.
+- Pozwolić użytkownikowi na obserwowanie lub kontrolę elementów wewnętrznych.
+- Zmieniać ogólne zachowanie funkcji wewnętrznych poprzez zawijanie (wrapping) w sposób, którego nie spodziewają się użytkownicy.
+
+Mówiąc krótko, zagnieżdzaj świadomie oraz z pełną celowością swojego działania.
+Dobrym testem "papierka lakmusowego" jest zadanie sobie pytania "czy wszystkie te wyeksportowane wewnętrzne metody / pola możnaby dodać bezpośrednio do typu zewnętrznego?". Jeśli odpowiedź brzmi "niektóre" lub "nie", nie osadzaj typu wewnętrznego, zamiast tego utwórz pole.
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+type A struct {
+    // Źle: A.Lock() oraz A.Unlock()
+    //      są teraz dostępne do użytku mimo że
+    //      nie zapewniają żadnych korzyści
+    //      oraz pozwalają użytkownikom na
+    //      kontrolę elementów wewnętrznych typu A
+    sync.Mutex
+}
+```
+
+</td><td>
+
+```go
+type countingWriteCloser struct {
+    // Dobrze: Write() jest dostępne w
+    //         warstwie zewnętrznej z
+    //         w bardzo konkretnynm celu
+    //         a także oddelegowuje wykonanie zadania
+    //         do metody Write() typu wewnętrznego.
+    io.WriteCloser
+    count int
+}
+func (w *countingWriteCloser) Write(bs []byte) (int, error) {
+    w.count += len(bs)
+    return w.WriteCloser.Write(bs)
+}
+```
+
+</td></tr>
+<tr><td>
+
+```go
+type Book struct {
+    // Źle: wskaźnik zmienia użyteczność wartości zerowej
+    io.ReadWriter
+    // inne pola
+}
+// dalej
+var b Book
+b.Read(...)  // panic: nil pointer
+b.String()   // panic: nil pointer
+b.Write(...) // panic: nil pointer
+```
+
+</td><td>
+
+```go
+type Book struct {
+    // Dobrze: posiada użyteczną wartość zerową
+    bytes.Buffer
+    // inne pola
+}
+// later
+var b Book
+b.Read(...)  // ok
+b.String()   // ok
+b.Write(...) // ok
+```
+
+</td></tr>
+<tr><td>
+
+```go
+type Client struct {
+    sync.Mutex
+    sync.WaitGroup
+    bytes.Buffer
+    url.URL
+}
+```
+
+</td><td>
+
+```go
+type Client struct {
+    mtx sync.Mutex
+    wg  sync.WaitGroup
+    buf bytes.Buffer
+    url url.URL
 }
 ```
 
@@ -2699,7 +2813,7 @@ db.Open(
 </td></tr>
 </tbody></table>
 
-Sugerowany przez nas sposób implementacji tego wzorca opiera się o interfejs `Option` zawierjaący nieeksportowaną metodę rejestrującą opcje w nieexportowanej strukturze `options`.
+Sugerowany przez nas sposób implementacji tego wzorca opiera się o interfejs `Option` zawierjaący nieeksportowaną metodę rejestrującą opcje w nieeksportowanej strukturze `options`.
 
 ```go
 type options struct {
