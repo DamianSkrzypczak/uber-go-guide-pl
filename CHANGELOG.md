@@ -1,3 +1,10 @@
+# 2020-06-10
+
+- Update based on the original repository changes from [2020-06-10](https://github.com/uber-go/guide/blob/master/CHANGELOG.md#2020-06-10):
+    > - Add guidance on avoiding `init()`.
+    > - Add guidance to avoid using built-in names.
+    > - Add reminder that nil slices are not always the same as empty slices.
+
 # 2020-02-01
 
 - Update based on the original repository changes from [2020-02-24](https://github.com/uber-go/guide/blob/master/CHANGELOG.md#2020-02-24):
