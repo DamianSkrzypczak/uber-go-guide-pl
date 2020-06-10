@@ -71,6 +71,7 @@ row before the </tbody></table> line.
   - [Unikaj mutowalnych zmiennych globalnych](#unikaj-mutowalnych-zmiennych-globalnych)
   - [Unikaj osadzania typów (type embedding) w strukturach publicznych](#unikaj-osadzania-typów-type-embedding-w-strukturach-publicznych)
   - [Unikaj używania nazw elementów wbudowanych (built-in names)](#unikaj-używania-nazw-elementów-wbudowanych-built-in-names)
+  - [Unikaj `init()`](#unikaj-init)
 - [Wydajność](#wydajność)
   - [Preferuj strconv ponad fmt](#preferuj-strconv-ponad-fmt)
   - [Unikaj konwersji string-to-byte](#unikaj-konwersji-string-to-byte)
@@ -1392,6 +1393,105 @@ func (f Foo) String() string {
 Warto pamiętać że kompilator nie będzie generował błędów podczas korzystania
 z wcześniej zadeklarowanych identyfikatorów, ale narzędzia takie jak `go vet` powinny
 poprawnie wskazywać takie jak i inne przypadki zaciemniania nazw.
+
+### Unikaj `init()`
+
+Unikaj funkcji `init ()` tam, gdzie to możliwe. Gdy wykorzystanie `init ()` jest nieuniknione lub wysoce pożądane, twój kod powinien:
+
+1. Być całkowicie deterministyczny i niezależny od środowiska czy warunków wywołania programu.
+2. Unikać zależności od kolejności lub skutków ubocznych (side-effects)
+iunnych funkcji `init()`. Podczas gdy porządek kolejnośc wywołania funkcji `init()` jest dobrze znana, kod może się zmienić a razem z nim
+zmianie mogą ulec zawarte w nim relacje.
+3. Unikaj manipulowania lub uzyskiwania dostępu do stanu globalnego czy stanu środowiska w tym informacji takich jak informacje o maszynie, zmienne środowiskowe, ścieżka do katalogu roboczego (working directory),
+argumenty wywoływania czy dane wejściowe programu itp.
+4. Unikaj operacji wejścia/wyjścia (I/O - input/output) włączając w to operacje na systemie plików, sieci oraz wywołaniach systemowych (system calls)
+
+Kod, który nie jest w stanie spełnić powyższych wymagań jest, z dużym prawdopodobieństwem, kodem pomocniczym, który powinien zostać wywołany jako krok funkcji `main()` (lub też w innej części cyklu życia programu),
+lub powinien zostać zaimplementowany jako część samej funkcji `main()`.
+W szczególności biblioteki, tworzone z myślą o wykorzystaniu przez inne programy powinny zachować szczególną ostrożność, aby być całkowicie
+deterministyczny i nie wykonujący "magii podczas inicjalizacji”.
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+type Foo struct {
+    // ...
+}
+var _defaultFoo Foo
+func init() {
+    _defaultFoo = Foo{
+        // ...
+    }
+}
+```
+
+</td><td>
+
+```go
+var _defaultFoo = Foo{
+    // ...
+}
+// lub lepiej, dla testowalności:
+var _defaultFoo = defaultFoo()
+func defaultFoo() Foo {
+    return Foo{
+        // ...
+    }
+}
+```
+
+</td></tr>
+<tr><td>
+
+```go
+type Config struct {
+    // ...
+}
+var _config Config
+func init() {
+    // Źle: bazuje na ścieżce katalogu roboczego
+    cwd, _ := os.Getwd()
+    // Źle: operacje wyjścia/wejścia (I/O)
+    raw, _ := ioutil.ReadFile(
+        path.Join(cwd, "config", "config.yaml"),
+    )
+    yaml.Unmarshal(raw, &_config)
+}
+```
+
+</td><td>
+
+```go
+type Config struct {
+    // ...
+}
+func loadConfig() Config {
+    cwd, err := os.Getwd()
+    // obsługa err
+    raw, err := ioutil.ReadFile(
+        path.Join(cwd, "config", "config.yaml"),
+    )
+    // obsługa err
+    var config Config
+    yaml.Unmarshal(raw, &config)
+    return config
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Biorąc pod uwagę powyższe, niektóre sytuacje, w których `init ()` może być preferowane lub
+niezbędne mogą obejmować:
+
+- Złożone wyrażenia, których nie można przedstawić jako pojedyncze przypisania.
+- "Pluggable hooks", takie jak dialekty `database/sql`, rejestry typów kodowania (encoding type registries) itp.
+- Optymalizacje do [Google Cloud Functions] i innych form deterministycznych obliczeń wstępnych.
+
+  [Google Cloud Functions]: https://cloud.google.com/functions/docs/bestpractices/tips#use_global_variables_to_reuse_objects_in_future_invocations
 
 ## Wydajność
 
