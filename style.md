@@ -76,6 +76,7 @@ row before the </tbody></table> line.
   - [Preferuj strconv ponad fmt](#preferuj-strconv-ponad-fmt)
   - [Unikaj konwersji string-to-byte](#unikaj-konwersji-string-to-byte)
   - [Określaj wskazówki dotyczące pojemności map](#określaj-wskazówki-dotyczące-pojemności-map)
+  - [Preferuj określenie pojemności wycinków przy operacji dodawania elementów (appending)](#preferuj-określenie-pojemności-wycinków-przy-operacji-dodawania-elementów-appending)
 - [Styl](#styl)
   - [Spójność ponad wszystko](#spójność-ponad-wszystko)
   - [Grupuj podobne deklaracje](#grupuj-podobne-deklaracje)
@@ -1623,6 +1624,51 @@ mapa `m` stworzona bez wskazania pojemności; Może wystąpić więcej alokacji 
 </td><td>
 
 mapa `m` stworzona ze wskazaniem pojemności; Może wystąpić mniej alokacji podczas operacji przypisywania.
+
+</td></tr>
+</tbody></table>
+
+### Preferuj określenie pojemności wycinków przy operacji dodawania elementów (appending)
+
+Gdy inicjalizujesz wycinek w celu dodawania elementów (appending), jeśli to możliwe, zapewniaj funkcji `make()` wartość pojemności (capacity).
+
+<table>
+<thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+for n := 0; n < b.N; n++ {
+  data := make([]int, 0)
+  for k := 0; k < size; k++{
+    data = append(data, k)
+  }
+}
+```
+
+</td><td>
+
+```go
+for n := 0; n < b.N; n++ {
+  data := make([]int, 0, size)
+  for k := 0; k < size; k++{
+    data = append(data, k)
+  }
+}
+```
+
+</td></tr>
+<tr><td>
+
+```
+BenchmarkBad-4    100000000    2.48s
+```
+
+</td><td>
+
+```
+BenchmarkGood-4   100000000    0.21s
+```
 
 </td></tr>
 </tbody></table>
