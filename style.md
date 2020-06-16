@@ -75,8 +75,9 @@ row before the </tbody></table> line.
 - [Wydajność](#wydajność)
   - [Preferuj strconv ponad fmt](#preferuj-strconv-ponad-fmt)
   - [Unikaj konwersji string-to-byte](#unikaj-konwersji-string-to-byte)
-  - [Określaj wskazówki dotyczące pojemności map](#określaj-wskazówki-dotyczące-pojemności-map)
-  - [Preferuj określenie pojemności wycinków przy operacji dodawania elementów (appending)](#preferuj-określenie-pojemności-wycinków-przy-operacji-dodawania-elementów-appending)
+  - [Preferuj określenie pojemności kontenerów](#preferuj-określenie-pojemności-kontenerów)
+      - [Określaj wskazówki dotyczące pojemności map](#określaj-wskazówki-dotyczące-pojemności-map)
+      - [Określaj pojemność wycinków](#określaj-pojemność-wycinków)
 - [Styl](#styl)
   - [Spójność ponad wszystko](#spójność-ponad-wszystko)
   - [Grupuj podobne deklaracje](#grupuj-podobne-deklaracje)
@@ -1580,7 +1581,11 @@ BenchmarkGood-4  500000000   3.25 ns/op
 </td></tr>
 </tbody></table>
 
-### Określaj wskazówki dotyczące pojemności map
+### Preferuj określenie pojemności kontenerów
+
+W miarę możliwości określaj pojemność kontenera aby z góry przydzielić odpowiednią ilość pamięci. Operacja ta pomoże zminimalizować kolejne przydziały pamięci (spowodowane przez kopiowanie oraz zwiększanie kontenera) w miarę dodawania nowych elementów.
+
+#### Określaj wskazówki dotyczące pojemności map
 
 Gdy to możliwe, umieszczaj wskazówki (hints) dotyczące pojemności mapy inicjalizowanej za pomocą funkcji `make()`.
 
@@ -1588,10 +1593,9 @@ Gdy to możliwe, umieszczaj wskazówki (hints) dotyczące pojemności mapy inicj
 make(map[T1]T2, hint)
 ```
 
-Zapewnienie informacji o pojemności funkcji `make()` sprawia że ta próbuje
-dopasować rozmiar mapy w czasie jej inicjalizacji, co skutkuje redukcją czasu
-potrzebnego na zwiększenie mapy i alokacje pamięci podczas dodawania nowych elementów.
-Pamiętaj jednak że mapy nie gwarantują obsługi wskazanej pojemności więc więc dodawanie kolejnych elementów może nadal wymagać alokacji pamięci nawet w przypadku podania wskazówki.
+Zapewnienie informacji o pojemności funkcji `make()` sprawia że funkcja spróbuje dopasować rozmiar mapy w czasie jej inicjalizacji, co skutkuje redukcją czasu potrzebnego na zwiększenie mapy i alokacje pamięci podczas dodawania nowych elementów.
+
+Pamiętaj jednak że w przeciwieństwie do wycinków, mapy nie gwarantują obsługi wskazanej pojemności, która służy jedynie do przybliżenia ilości potrzebnych "wiaderek" (hashmap buckets). Tak więc dodawanie kolejnych elementów może nadal wymagać alokacji pamięci nawet w przypadku podania wskazówki na temat pojemności mapy.
 
 <table>
 <thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
@@ -1631,9 +1635,15 @@ mapa `m` stworzona ze wskazaniem pojemności; Może wystąpić mniej alokacji po
 </td></tr>
 </tbody></table>
 
-### Preferuj określenie pojemności wycinków przy operacji dodawania elementów (appending)
+#### Określaj pojemność wycinków
 
-Gdy inicjalizujesz wycinek w celu dodawania elementów (appending), jeśli to możliwe, zapewniaj funkcji `make()` wartość pojemności (capacity).
+Tam, gdzie to możliwe, podaj wskazówki dotyczące pojemności podczas inicjowania wycinków za pomocą funkcji `make()`, szczególnie przy okazji operacji dodawania elementów (appending).
+
+```go
+make([]T, length, capacity)
+```
+
+Inaczej niż w przypadku map, pojemność wycinków nie stanowi jedynie wskazówki: kompilator przydzieli wycinkowi taką ilość pamięci, która będzie odpowiadała pojemności (capacity) jaka zostanie dostarczona funkcji `make()`, co oznacza że kolejne operacje `append()` nie będą pociągały za sobą operacji alokacji pamięci (do momentu gdy długość wycinka zrówna się z jego pojemnością, co spowoduje że kolejna operacja dodania będzie wymagała zmiany rozmiaru wycinka w celu przechowywania nowych elementów).
 
 <table>
 <thead><tr><th>Źle</th><th>Dobrze</th></tr></thead>
