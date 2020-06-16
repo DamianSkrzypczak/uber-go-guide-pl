@@ -207,7 +207,10 @@ func (h LogHandler) ServeHTTP(
 
 ### Odbiorniki (Receivers) i Interfejsy
 
-Metody przynależące do odbiornika mogą być wywoływane zarówno na jego wskaźnikach jak i wartościach.
+Metody przynależące do wartości odbiornika mogą być wywoływane zarówno na jego wskaźnikach jak i wartościach.
+Metody przynależące do wskaźnika odbiornika (pointer receiver) mogą być wywoływane jedynie na jego wskaźnika lub [wartościach adresowalnych].
+
+  [wartościach adresowalnych]: https://golang.org/ref/spec#Method_values
 
 Na przykład:
 
