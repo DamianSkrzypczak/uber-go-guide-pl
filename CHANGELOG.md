@@ -1,3 +1,7 @@
+# 2020-09-28
+
+- Update based on the original repository changes from merged pull request [2020-09-24 Add Linting section (#96)](https://github.com/uber-go/guide/pull/96)
+
 # 2020-09-18
 
 - Update based on the original repository changes from merged pull request [2020-09-14 Don't Panic: Remove main panic (#105)](https://github.com/uber-go/guide/pull/105)

@@ -104,6 +104,7 @@ row before the </tbody></table> line.
 - [Wzorce](#wzorce)
   - [Tablice testowe](#tablice-testowe)
   - [Opcje funkcjonalne](#opcje-funkcjonalne)
+- [Lintowanie](#lintowanie)
 
 ## Wstęp
 
@@ -3028,3 +3029,43 @@ Zobacz również,
 
   [Self-referential functions and the design of options]: https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html
   [Functional options for friendly APIs]: https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
+
+
+## Lintowanie
+
+Ważniejsza od jakichkolwiek "błogosławionych" zestawów linterów jest
+konsekwencja w lintowaniu swojej bazy kodu.
+
+Zalecamy stosowanie przynajmniej wymienionych linterów, ponieważ uważamy,
+że pomogą one wyłapać najczęstsze problemy oraz ustanowić wysoki próg
+jakościowy dla kodu bez niepotrzebnego narzucania reguł:
+
+- [errcheck] to ensure that errors are handled
+- [goimports] to format code and manage imports
+- [golint] to point out common style mistakes
+- [govet] to analyze code for common mistakes
+- [staticcheck] to do various static analysis checks
+
+  [errcheck]: https://github.com/kisielk/errcheck
+  [goimports]: https://godoc.org/golang.org/x/tools/cmd/goimports
+  [golint]: https://github.com/golang/lint
+  [govet]: https://golang.org/cmd/vet/
+  [staticcheck]: https://staticcheck.io/
+
+
+### Runnery linterów
+
+Zalecamy stosowanie [golangci-lint] jako głównego runnera na potrzeb lintowania
+kodu w języku Go, przede wszystkim z powodu jego wydajności dla dużych baz kodu
+oraz możliwości konfiguracji i używania wielu standardowych linterów jednocześnie.
+To repozytorium posiada przykład pliku konfiguracyjnego [.golangci.yml] zawierającego
+rekomendowane lintery oraz ustawienia.
+
+golangci-lint umożliwia użycie [wielu linterów]. Wyżej wymienione lintery
+są rekomendowane jako podstaswowy zbiór, jednak zachęcamy również zespoły developerskie
+do dodania dodatkowych linterów mających sens w kontekście ich projektów.
+
+  [golangci-lint]: https://github.com/golangci/golangci-lint
+  [.golangci.yml]: https://github.com/DamianSkrzypczak/uber-go-guide-pl/blob/master/.golangci.yml
+  [wielu linterów]: https://golangci-lint.run/usage/linters/
+
