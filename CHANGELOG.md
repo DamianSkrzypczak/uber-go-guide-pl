@@ -1,3 +1,7 @@
+# 2020-12-02
+
+- Update based on the original repository changes from merged pull request [2020-12-02 don't use interface pointer (#106)](https://github.com/uber-go/guide/pull/106)
+
 # 2020-09-28
 
 - Update based on the original repository changes from merged pull request [2020-09-24 Add Linting section (#96)](https://github.com/uber-go/guide/pull/96)

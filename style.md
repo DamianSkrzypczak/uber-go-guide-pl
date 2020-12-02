@@ -671,7 +671,7 @@ Wracając do przykładu z dodawaniem 24 godzin to punktu w czasie, metoda które
   [`Time.Add`]: https://golang.org/pkg/time/#Time.Add
 
 ```go
-newDay := t.AddDate(0 /* lata */, 0, /* miesiące */, 1 /* dni */)
+newDay := t.AddDate(0 /* lata */, 0 /* miesiące */, 1 /* dni */)
 maybeNewDay := t.Add(24 * time.Hour)
 ```
 
@@ -1233,11 +1233,11 @@ type ConcreteList struct {
 }
 // Add dodaje element do listy.
 func (l *ConcreteList) Add(e Entity) {
-  return l.list.Add(e)
+  l.list.Add(e)
 }
 // Remove usuwa element z listy.
 func (l *ConcreteList) Remove(e Entity) {
-  return l.list.Remove(e)
+  l.list.Remove(e)
 }
 ```
 
@@ -1278,15 +1278,15 @@ type ConcreteList struct {
 ```go
 // ConcreteList stanowi listę elementów.
 type ConcreteList struct {
-  list *AbstractList
+  list AbstractList
 }
 // Add dodaje element do listy.
 func (l *ConcreteList) Add(e Entity) {
-  return l.list.Add(e)
+  l.list.Add(e)
 }
 // Remove usuwa element z listy.
 func (l *ConcreteList) Remove(e Entity) {
-  return l.list.Remove(e)
+  l.list.Remove(e)
 }
 ```
 
