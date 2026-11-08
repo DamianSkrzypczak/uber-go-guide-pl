@@ -1,3 +1,8 @@
+# 2026-11-06
+
+- Full repository overhaul to match the up-to-date [Uber Go Style Guide](https://github.com/uber-go/guide) (updated after ~6 years).
+- Revised translation to reflect current Go best practices and standard library changes.
+
 # 2020-12-02
 
 - Update based on the original repository changes from merged pull request [2020-12-02 don't use interface pointer (#106)](https://github.com/uber-go/guide/pull/106)
